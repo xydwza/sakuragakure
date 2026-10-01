@@ -1,12 +1,15 @@
 package pages
 
 import (
+	"strconv"
+
+	"sakuragakure/internal/db"
 	"sakuragakure/internal/kas"
 	"sakuragakure/internal/web/components"
 	"sakuragakure/internal/web/format"
 )
 
-templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string, nav []components.NavItem, active string) {
+templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string, agenda []db.AgendaMendatangRow, albums []db.ListAlbumRow, nav []components.NavItem, active string) {
 	@components.Layout("Beranda · RT 06 / RW 28 Sakura", nav, active) {
 		<div class="stack">
 			<div class="hero">
@@ -25,6 +28,42 @@ templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, 
 				@components.Kelopak(kelopak)
 				<div class="legend" style="margin-top:10px"><span><i style="background:var(--leaf);border-color:var(--leaf)"></i>Diterima bendahara</span><span><i style="background:var(--clay-soft);border-color:var(--clay)"></i>Sudah ditarik koordinator</span><span><i></i>Belum</span></div>
 			</section>
+			<div class="grid2">
+				<section class="card">
+					<div class="section-h"><h2>Agenda terdekat</h2><a class="btn s ghost" href="/agenda">Semua agenda</a></div>
+					if len(agenda) == 0 {
+						<div class="empty">Belum ada agenda mendatang.</div>
+					} else {
+						<div class="tl">
+							for _, a := range agenda {
+								<div class="tl-it">
+									<div class="datebox"><b>{ format.HariDari(a.Mulai) }</b><span>{ format.BulanPendek(a.Mulai[:7]) }</span></div>
+									<div class="grow"><div style="font-weight:600">{ a.Judul }</div><div class="xs faint">{ a.Keterangan.String }</div></div>
+									if a.Tingkat == "penting" {
+										<span class="pill warn">Penting</span>
+									}
+								</div>
+							}
+						</div>
+					}
+				</section>
+				<section class="card">
+					<div class="section-h"><h2>Kegiatan terbaru</h2><a class="btn s ghost" href="/kegiatan">Semua album</a></div>
+					if len(albums) == 0 {
+						<div class="empty">Belum ada album kegiatan.</div>
+					} else {
+						<div class="photos" style="grid-template-columns:repeat(3,1fr)">
+							for _, a := range albums {
+								<a href={ templ.URL("/kegiatan/" + a.Slug) }>
+									if a.SampulMediaID.Valid {
+										<img src={ "/m/" + strconv.FormatInt(a.SampulMediaID.Int64, 10) + "/thumb" } alt={ a.Judul }/>
+									}
+								</a>
+							}
+						</div>
+					}
+				</section>
+			</div>
 		</div>
 	}
 }

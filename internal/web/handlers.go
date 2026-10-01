@@ -122,7 +122,9 @@ func (h *Handlers) Beranda(w http.ResponseWriter, r *http.Request) {
 	saldo, _ := h.kas.SaldoPosis(ctx)
 	kelopak, _ := h.kas.KelopakPerGang(ctx, periode)
 	diKoordinator, _ := h.kas.Q.NominalDiKoordinator(ctx)
-	pages.Beranda(saldo["kas_rt"], saldo["dana_sosial"], saldo["rukem"], diKoordinator, kelopak, periode, h.nav(r), "beranda").Render(ctx, w)
+	agenda, _ := h.konten.Q.AgendaMendatang(ctx, db.AgendaMendatangParams{Mulai: time.Now().Format(time.RFC3339), Limit: 4})
+	albums, _ := h.konten.Q.ListAlbum(ctx)
+	pages.Beranda(saldo["kas_rt"], saldo["dana_sosial"], saldo["rukem"], diKoordinator, kelopak, periode, agenda, albums, h.nav(r), "beranda").Render(ctx, w)
 }
 
 func (h *Handlers) Kas(w http.ResponseWriter, r *http.Request) {

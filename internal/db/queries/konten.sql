@@ -30,3 +30,6 @@ SELECT id, judul, slug, tanggal, cerita, sampul_media_id FROM album WHERE slug =
 
 -- name: FotoAlbum :many
 SELECT af.media_id, af.keterangan, af.urutan FROM album_foto af WHERE af.album_id = ? ORDER BY af.urutan, af.media_id;
+
+-- name: AgendaMendatang :many
+SELECT judul, keterangan, mulai, tingkat FROM agenda WHERE mulai >= ? ORDER BY mulai LIMIT ?;

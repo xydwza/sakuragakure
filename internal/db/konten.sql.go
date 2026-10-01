@@ -10,6 +10,50 @@ import (
 	"database/sql"
 )
 
+const agendaMendatang = `-- name: AgendaMendatang :many
+SELECT judul, keterangan, mulai, tingkat FROM agenda WHERE mulai >= ? ORDER BY mulai LIMIT ?
+`
+
+type AgendaMendatangParams struct {
+	Mulai string
+	Limit int64
+}
+
+type AgendaMendatangRow struct {
+	Judul      string
+	Keterangan sql.NullString
+	Mulai      string
+	Tingkat    string
+}
+
+func (q *Queries) AgendaMendatang(ctx context.Context, arg AgendaMendatangParams) ([]AgendaMendatangRow, error) {
+	rows, err := q.db.QueryContext(ctx, agendaMendatang, arg.Mulai, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AgendaMendatangRow
+	for rows.Next() {
+		var i AgendaMendatangRow
+		if err := rows.Scan(
+			&i.Judul,
+			&i.Keterangan,
+			&i.Mulai,
+			&i.Tingkat,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const albumBySlug = `-- name: AlbumBySlug :one
 SELECT id, judul, slug, tanggal, cerita, sampul_media_id FROM album WHERE slug = ?
 `

@@ -69,6 +69,18 @@ func TglID(tanggal string) string {
 	return strconv.Itoa(d) + " " + bulanPendek[m-1] + " " + p[0]
 }
 
+// HariDari mengambil angka hari (tanpa nol depan) dari "2026-10-03..." -> "3".
+func HariDari(ts string) string {
+	if len(ts) < 10 {
+		return ""
+	}
+	d := strings.TrimLeft(ts[8:10], "0")
+	if d == "" {
+		return "0"
+	}
+	return d
+}
+
 // ChartSVG merender grafik batang pemasukan/pengeluaran kas RT (server-side).
 func ChartSVG(rows []db.GrafikKasBulananRow) string {
 	const W, H, pad = 640, 200, 28
