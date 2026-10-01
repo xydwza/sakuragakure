@@ -3,44 +3,52 @@ package pages
 import (
 	"strconv"
 
-	"sakuragakure/internal/db"
 	"sakuragakure/internal/web/components"
 )
 
-templ Pengurus(daftar []db.ListPengurusRow, nav []components.NavItem, active string) {
+templ Pengurus(pohon NodePengurus, nav []components.NavItem, active string) {
 	@components.Layout("Pengurus · RT 06 / RW 28 Sakura", nav, active) {
 		<div class="stack">
-			<div><h1 style="font-size:28px">Pengurus RT 06</h1><p class="muted">Ketuk nama untuk melihat detail dan menghubungi lewat WhatsApp.</p></div>
-			if len(daftar) == 0 {
-				<div class="empty">Belum ada pengurus terdaftar.</div>
-			} else {
-				<div class="pengurus-list">
-					for _, x := range daftar {
-						<details class="pengurus-card">
-							<summary>
-								if x.FotoMediaID.Valid {
-									<img class="foto" src={ "/m/" + strconv.FormatInt(x.FotoMediaID.Int64, 10) + "/thumb" } alt={ x.Nama }/>
-								} else {
-									<span class="foto dummy" aria-hidden="true">
-										<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
-									</span>
-								}
-								<span class="grow"><b>{ x.Nama }</b><span class="jab">{ PeranLabel(x.Peran, int(x.Gang)) }</span></span>
-								<span class="chev" aria-hidden="true">⌄</span>
-							</summary>
-							<div class="detail">
-								if x.Alamat.Valid && x.Alamat.String != "" {
-									<div class="baris"><span class="muted">Alamat</span><b>{ x.Alamat.String }</b></div>
-								}
-								if x.Detail.Valid && x.Detail.String != "" {
-									<p class="small muted">{ x.Detail.String }</p>
-								}
-								<a class="btn leaf sm" href={ templ.URL(WaChatLink(x.NoWa, Sapaan(x.Peran, int(x.Gang)))) } target="_blank" rel="noopener">Chat WhatsApp</a>
-							</div>
-						</details>
-					}
-				</div>
-			}
+			<div><h1 style="font-size:28px">Pengurus RT 06</h1><p class="muted">Struktur organisasi. Ketuk nama untuk detail dan chat WhatsApp.</p></div>
+			<div class="org-wrap">
+				<ul class="org">
+					@Cabang(pohon)
+				</ul>
+			</div>
 		</div>
 	}
+}
+
+templ Cabang(n NodePengurus) {
+	<li>
+		<div class="pnode">
+			<details>
+				<summary>
+					if n.FotoMediaID.Valid {
+						<img class="pav" src={ "/m/" + strconv.FormatInt(n.FotoMediaID.Int64, 10) + "/thumb" } alt={ n.Nama }/>
+					} else {
+						<span class="pav">{ AvatarInitials(n.Nama) }</span>
+					}
+					<span class="pnama">{ n.Nama }</span>
+					<span class="pjab">{ n.Jabatan }</span>
+				</summary>
+				<div class="pdetail">
+					if n.Alamat != "" {
+						<div class="small muted">Alamat: { n.Alamat }</div>
+					}
+					if n.Detail != "" {
+						<p class="small muted">{ n.Detail }</p>
+					}
+					<a class="btn leaf sm" href={ templ.URL(WaChatLink(n.Wa, Sapaan(n.Peran, n.Gang))) } target="_blank" rel="noopener">Chat WhatsApp</a>
+				</div>
+			</details>
+		</div>
+		if len(n.Anak) > 0 {
+			<ul>
+				for _, a := range n.Anak {
+					@Cabang(a)
+				}
+			</ul>
+		}
+	</li>
 }

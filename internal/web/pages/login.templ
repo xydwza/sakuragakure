@@ -1,5 +1,7 @@
 package pages
 
+import "sakuragakure/internal/web/components"
+
 templ Login(csrf string) {
 	<!doctype html>
 	<html lang="id">
@@ -8,6 +10,7 @@ templ Login(csrf string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 			<meta name="theme-color" content="#16302A"/>
 			<title>Masuk pengurus · RT 06 / RW 28 Sakura</title>
+			<link rel="icon" type="image/svg+xml" href="/static/icons/sakura.svg"/>
 			<link rel="manifest" href="/static/manifest.webmanifest"/>
 			<link rel="apple-touch-icon" href="/static/icons/icon-192.png"/>
 			<link rel="stylesheet" href="/static/app.css"/>
@@ -17,18 +20,7 @@ templ Login(csrf string) {
 			<div class="login-wrap">
 				<div class="login-card">
 					<div class="brand">
-						<svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
-							<g transform="translate(20 20)">
-								<g fill="var(--sakura)">
-									<ellipse rx="6" ry="10" cy="-9"/>
-									<ellipse rx="6" ry="10" cy="-9" transform="rotate(72)"/>
-									<ellipse rx="6" ry="10" cy="-9" transform="rotate(144)"/>
-									<ellipse rx="6" ry="10" cy="-9" transform="rotate(216)"/>
-									<ellipse rx="6" ry="10" cy="-9" transform="rotate(288)"/>
-								</g>
-								<circle r="4" fill="var(--ink)"/>
-							</g>
-						</svg>
+						@components.Mark()
 						<div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div>
 					</div>
 					<div>

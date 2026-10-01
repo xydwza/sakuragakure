@@ -194,20 +194,27 @@ mark{background:var(--sakura-soft);color:var(--sakura-ink);border-radius:4px;pad
 .person{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
 .av{width:42px;height:42px;border-radius:999px;display:grid;place-items:center;font-weight:800;background:var(--sakura-soft);color:var(--sakura-ink);flex:none}
 
-/* pengurus (collapsible) */
-.pengurus-list{display:grid;gap:10px}
-.pengurus-card{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);box-shadow:var(--shadow)}
-.pengurus-card summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
-.pengurus-card summary::-webkit-details-marker{display:none}
-.pengurus-card summary .grow{flex:1;min-width:0;display:grid;gap:2px}
-.pengurus-card summary .jab{font-size:13px;color:var(--ink-2)}
-.pengurus-card .chev{color:var(--ink-3);transition:transform .15s;font-size:18px}
-.pengurus-card[open] .chev{transform:rotate(180deg)}
-.pengurus-card .foto{width:46px;height:46px;border-radius:999px;object-fit:cover;flex:none;background:var(--sunk)}
-.pengurus-card .foto.dummy{display:grid;place-items:center;color:var(--sakura-ink);background:var(--sakura-soft)}
-.pengurus-card .foto.dummy svg{width:26px;height:26px}
-.pengurus-card .detail{padding:4px 16px 16px;display:grid;gap:10px;border-top:1px solid var(--line)}
-.pengurus-card .detail .baris{display:flex;justify-content:space-between;gap:10px;padding-top:10px}
+/* pengurus: pohon struktur */
+.org-wrap{overflow-x:auto;padding:6px 0 16px}
+.org{display:flex;padding-top:20px;position:relative;margin:0;padding-left:0}
+.org ul{padding-top:20px;position:relative;display:flex;justify-content:center;margin:0;padding-left:0}
+.org li{list-style:none;display:flex;flex-direction:column;align-items:center;padding:20px 8px 0;position:relative}
+.org li::before,.org li::after{content:'';position:absolute;top:0;right:50%;border-top:1px solid var(--line);width:50%;height:20px}
+.org li::after{right:auto;left:50%;border-left:1px solid var(--line)}
+.org li:only-child::after,.org li:only-child::before{display:none}
+.org li:only-child{padding-top:0}
+.org li:first-child::before,.org li:last-child::after{border:0 none}
+.org li:last-child::before{border-right:1px solid var(--line);border-radius:0 5px 0 0}
+.org li:first-child::after{border-radius:5px 0 0 0}
+.org ul ul::before{content:'';position:absolute;top:0;left:50%;border-left:1px solid var(--line);width:0;height:20px}
+
+.pnode{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);box-shadow:var(--shadow);max-width:200px;width:100%}
+.pnode summary{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 10px;cursor:pointer;list-style:none;text-align:center}
+.pnode summary::-webkit-details-marker{display:none}
+.pav{width:40px;height:40px;border-radius:999px;display:grid;place-items:center;background:var(--sakura-soft);color:var(--sakura-ink);font-weight:800;font-size:14px;object-fit:cover;flex:none}
+.pnama{font-weight:600;font-size:14px;line-height:1.25}
+.pjab{font-size:12px;color:var(--ink-2)}
+.pdetail{padding:10px 12px 12px;border-top:1px solid var(--line);display:grid;gap:8px;text-align:left}
 
 
 /* chart */

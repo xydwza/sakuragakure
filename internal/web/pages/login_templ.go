@@ -8,6 +8,8 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "sakuragakure/internal/web/components"
+
 func Login(csrf string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,20 +31,28 @@ func Login(csrf string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><meta name=\"theme-color\" content=\"#16302A\"><title>Masuk pengurus · RT 06 / RW 28 Sakura</title><link rel=\"manifest\" href=\"/static/manifest.webmanifest\"><link rel=\"apple-touch-icon\" href=\"/static/icons/icon-192.png\"><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/app.js\" defer></script></head><body><div class=\"login-wrap\"><div class=\"login-card\"><div class=\"brand\"><svg class=\"mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><g transform=\"translate(20 20)\"><g fill=\"var(--sakura)\"><ellipse rx=\"6\" ry=\"10\" cy=\"-9\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"var(--ink)\"></circle></g></svg><div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div></div><div><h1 style=\"font-size:26px\">Masuk pengurus</h1><p class=\"muted small\">Kelola iuran, kas, dan kegiatan RT 06.</p></div><form class=\"form\" method=\"post\" action=\"/masuk\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><meta name=\"theme-color\" content=\"#16302A\"><title>Masuk pengurus · RT 06 / RW 28 Sakura</title><link rel=\"icon\" type=\"image/svg+xml\" href=\"/static/icons/sakura.svg\"><link rel=\"manifest\" href=\"/static/manifest.webmanifest\"><link rel=\"apple-touch-icon\" href=\"/static/icons/icon-192.png\"><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/app.js\" defer></script></head><body><div class=\"login-wrap\"><div class=\"login-card\"><div class=\"brand\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.Mark().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div></div><div><h1 style=\"font-size:26px\">Masuk pengurus</h1><p class=\"muted small\">Kelola iuran, kas, dan kegiatan RT 06.</p></div><form class=\"form\" method=\"post\" action=\"/masuk\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(csrf)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pages/login.templ`, Line: 39, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pages/login.templ`, Line: 31, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <label class=\"field\">Nama pengguna / WhatsApp <input name=\"user\" inputmode=\"text\" placeholder=\"ferry\" autocomplete=\"username\" required></label> <label class=\"field\">Kata sandi <input name=\"password\" type=\"password\" autocomplete=\"current-password\" required></label> <button class=\"btn\">Masuk</button></form><a class=\"small muted\" href=\"/\">← Kembali ke beranda</a></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"> <label class=\"field\">Nama pengguna / WhatsApp <input name=\"user\" inputmode=\"text\" placeholder=\"ferry\" autocomplete=\"username\" required></label> <label class=\"field\">Kata sandi <input name=\"password\" type=\"password\" autocomplete=\"current-password\" required></label> <button class=\"btn\">Masuk</button></form><a class=\"small muted\" href=\"/\">← Kembali ke beranda</a></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

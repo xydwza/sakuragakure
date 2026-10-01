@@ -1,10 +1,65 @@
 package pages
 
-import "sakuragakure/internal/db"
+import (
+	"database/sql"
+
+	"sakuragakure/internal/db"
+)
 
 // ActionCard adalah satu kartu aksi di dasbor kelola.
 type ActionCard struct {
 	Label, Href string
+}
+
+// NodePengurus adalah simpul pohon struktur pengurus.
+type NodePengurus struct {
+	Nama, Jabatan, Wa, Alamat, Detail string
+	Peran                             string
+	Gang                              int
+	FotoMediaID                       sql.NullInt64
+	Anak                              []NodePengurus
+}
+
+// BuildPohon menyusun daftar pengurus menjadi pohon (ketua -> inti & koordinator -> pembantu).
+func BuildPohon(list []db.ListPengurusRow) NodePengurus {
+	var ketua NodePengurus
+	var inti []NodePengurus
+	koord := map[int64]*NodePengurus{}
+	pembantu := map[int64][]NodePengurus{}
+
+	toNode := func(p db.ListPengurusRow) NodePengurus {
+		return NodePengurus{
+			Nama:        p.Nama,
+			Jabatan:     PeranLabel(p.Peran, int(p.Gang)),
+			Wa:          p.NoWa,
+			Alamat:      p.Alamat.String,
+			Detail:      p.Detail.String,
+			Peran:       p.Peran,
+			Gang:        int(p.Gang),
+			FotoMediaID: p.FotoMediaID,
+		}
+	}
+	for _, p := range list {
+		switch p.Peran {
+		case "ketua":
+			ketua = toNode(p)
+		case "wakil", "sekretaris", "bendahara":
+			inti = append(inti, toNode(p))
+		case "koordinator":
+			n := toNode(p)
+			koord[p.Gang] = &n
+		case "pembantu_koordinator":
+			pembantu[p.Gang] = append(pembantu[p.Gang], toNode(p))
+		}
+	}
+	ketua.Anak = append(ketua.Anak, inti...)
+	for g := int64(1); g <= 3; g++ {
+		if k, ok := koord[g]; ok {
+			k.Anak = append(k.Anak, pembantu[g]...)
+			ketua.Anak = append(ketua.Anak, *k)
+		}
+	}
+	return ketua
 }
 
 // BlokRumah adalah sekelompok rumah dalam satu blok untuk grid tarik iuran.
