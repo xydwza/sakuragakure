@@ -261,6 +261,7 @@ type User struct {
 	Alamat       sql.NullString
 	Detail       sql.NullString
 	FotoMediaID  sql.NullInt64
+	Username     sql.NullString
 }
 
 type UserPeran struct {

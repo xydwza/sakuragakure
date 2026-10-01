@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -67,4 +68,29 @@ func Slugify(s string) string {
 		s = "album"
 	}
 	return s
+}
+
+// HapusAlbum menghapus album beserta relasi fotonya (file media dibiarkan).
+func (s *Service) HapusAlbum(ctx context.Context, albumID int64) error {
+	if _, err := s.DB.ExecContext(ctx, `DELETE FROM album_foto WHERE album_id = ?`, albumID); err != nil {
+		return err
+	}
+	_, err := s.DB.ExecContext(ctx, `DELETE FROM album WHERE id = ?`, albumID)
+	return err
+}
+
+// HapusMedia menghapus baris media dan file-nya.
+func (s *Service) HapusMedia(ctx context.Context, mediaID int64) error {
+	m, err := s.Q.MediaByID(ctx, mediaID)
+	if err != nil {
+		return err
+	}
+	if _, err := s.DB.ExecContext(ctx, `DELETE FROM media WHERE id = ?`, mediaID); err != nil {
+		return err
+	}
+	_ = os.Remove(m.Path)
+	if m.ThumbPath.Valid {
+		_ = os.Remove(m.ThumbPath.String)
+	}
+	return nil
 }

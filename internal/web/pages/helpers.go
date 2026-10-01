@@ -6,6 +6,36 @@ import (
 	"strings"
 )
 
+// DaftarPeran adalah semua peran yang bisa dimiliki user.
+var DaftarPeran = []string{"warga", "koordinator", "pembantu_koordinator", "sekretaris", "bendahara", "wakil", "ketua", "admin", "rw", "perangkat_desa"}
+
+// PeranNama mengembalikan nama tampil sebuah peran.
+func PeranNama(peran string) string {
+	switch peran {
+	case "warga":
+		return "Warga"
+	case "koordinator":
+		return "Koordinator"
+	case "pembantu_koordinator":
+		return "Pembantu koordinator"
+	case "sekretaris":
+		return "Sekretaris"
+	case "bendahara":
+		return "Bendahara"
+	case "wakil":
+		return "Wakil"
+	case "ketua":
+		return "Ketua"
+	case "admin":
+		return "Admin"
+	case "rw":
+		return "RW"
+	case "perangkat_desa":
+		return "Perangkat desa"
+	}
+	return peran
+}
+
 // PeranLabel menampilkan nama peran untuk struktur pengurus.
 func PeranLabel(peran string, gang int) string {
 	switch peran {

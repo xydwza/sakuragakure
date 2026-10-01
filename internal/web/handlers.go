@@ -13,6 +13,7 @@ import (
 	"github.com/justinas/nosurf"
 
 	"sakuragakure/internal/auth"
+	"sakuragakure/internal/audit"
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/kas"
@@ -64,7 +65,7 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 			return []components.NavItem{
 				{Key: "beranda", Label: "Beranda", Href: "/"},
 				{Key: "kas", Label: "Kas RT", Href: "/kas"},
-				{Key: "kelola", Label: "Kelola user", Href: "/admin/user"},
+				{Key: "admin", Label: "Admin", Href: "/admin"},
 			}
 		case "koordinator", "pembantu_koordinator":
 			return []components.NavItem{
@@ -235,6 +236,7 @@ func (h *Handlers) TerimaSetoran(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "terima_setoran", "setoran", strconv.FormatInt(id, 10), "", ip(r))
 	http.Redirect(w, r, "/kelola/setoran", http.StatusSeeOther)
 }
 
@@ -245,6 +247,7 @@ func (h *Handlers) TolakSetoran(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "tolak_setoran", "setoran", strconv.FormatInt(id, 10), "", ip(r))
 	http.Redirect(w, r, "/kelola/setoran", http.StatusSeeOther)
 }
 
@@ -296,6 +299,7 @@ func (h *Handlers) MutasiBaruSubmit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "catat_pengeluaran", "mutasi", "", r.FormValue("pos")+" "+format.FormatRupiah(nominal), ip(r))
 	http.Redirect(w, r, "/kelola/mutasi", http.StatusSeeOther)
 }
 
@@ -480,10 +484,27 @@ func (h *Handlers) kartuKelola(ctx context.Context) []pages.ActionCard {
 	return out
 }
 
+func (h *Handlers) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	pages.AdminDashboard(h.nav(r), "admin").Render(r.Context(), w)
+}
+
 func (h *Handlers) AdminUserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	users, _ := h.konten.Q.ListUser(ctx)
 	pages.AdminUser(users, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminUserBaru(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	peran := r.FormValue("peran")
+	gang, _ := strconv.Atoi(r.FormValue("gang"))
+	_, err := auth.BuatUser(h.auth.DB, r.FormValue("nama"), r.FormValue("username"), r.FormValue("no_wa"), peran, r.FormValue("password"), gang)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "buat_user", "user", "", r.FormValue("nama")+" ("+peran+")", ip(r))
+	http.Redirect(w, r, "/admin/user", http.StatusSeeOther)
 }
 
 func (h *Handlers) AdminUserEdit(w http.ResponseWriter, r *http.Request) {
@@ -494,7 +515,8 @@ func (h *Handlers) AdminUserEdit(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	pages.AdminUserEdit(u, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+	peran, _ := h.konten.Q.UserPeranList(ctx, id)
+	pages.AdminUserEdit(u, peran, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
 }
 
 func (h *Handlers) AdminUserSave(w http.ResponseWriter, r *http.Request) {
@@ -511,7 +533,79 @@ func (h *Handlers) AdminUserSave(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "gagal menyimpan", http.StatusBadRequest)
 		return
 	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "ubah_user", "user", strconv.FormatInt(id, 10), "", ip(r))
 	http.Redirect(w, r, "/admin/user", http.StatusSeeOther)
+}
+
+func (h *Handlers) AdminPeranTambah(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	gang, _ := strconv.Atoi(r.FormValue("gang"))
+	_ = h.konten.Q.AddUserPeran(ctx, db.AddUserPeranParams{UserID: id, Peran: r.FormValue("peran"), Gang: int64(gang)})
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "tambah_peran", "user", strconv.FormatInt(id, 10), r.FormValue("peran"), ip(r))
+	http.Redirect(w, r, "/admin/user/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+}
+
+func (h *Handlers) AdminPeranHapus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	gang, _ := strconv.Atoi(r.FormValue("gang"))
+	_ = h.konten.Q.RemoveUserPeran(ctx, db.RemoveUserPeranParams{UserID: id, Peran: r.FormValue("peran"), Gang: int64(gang)})
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "hapus_peran", "user", strconv.FormatInt(id, 10), r.FormValue("peran"), ip(r))
+	http.Redirect(w, r, "/admin/user/"+strconv.FormatInt(id, 10), http.StatusSeeOther)
+}
+
+func (h *Handlers) AdminToggleAktif(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	aktif, _ := strconv.Atoi(r.FormValue("aktif"))
+	_ = h.konten.Q.ToggleUserAktif(ctx, db.ToggleUserAktifParams{ID: id, Aktif: int64(aktif)})
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "toggle_aktif", "user", strconv.FormatInt(id, 10), "", ip(r))
+	http.Redirect(w, r, "/admin/user", http.StatusSeeOther)
+}
+
+func (h *Handlers) AdminAudit(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	audits, _ := h.konten.Q.ListAudit(ctx)
+	pages.AdminAudit(audits, h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminGaleri(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	albums, _ := h.konten.Q.ListAlbum(ctx)
+	pages.AdminGaleri(albums, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminGaleriHapus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	_ = h.konten.HapusAlbum(ctx, id)
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "hapus_album", "album", strconv.FormatInt(id, 10), "", ip(r))
+	http.Redirect(w, r, "/admin/galeri", http.StatusSeeOther)
+}
+
+func (h *Handlers) AdminDokumen(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	media, _ := h.konten.Q.ListMedia(ctx)
+	pages.AdminDokumen(media, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminDokumenHapus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err := h.konten.HapusMedia(ctx, id); err != nil {
+		http.Error(w, "media masih dipakai", http.StatusBadRequest)
+		return
+	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "hapus_media", "media", strconv.FormatInt(id, 10), "", ip(r))
+	http.Redirect(w, r, "/admin/dokumen", http.StatusSeeOther)
+}
+
+func ip(r *http.Request) string {
+	if x := r.Header.Get("X-Forwarded-For"); x != "" {
+		return strings.TrimSpace(strings.Split(x, ",")[0])
+	}
+	return r.RemoteAddr
 }
 
 func (h *Handlers) LaporanPage(w http.ResponseWriter, r *http.Request) {

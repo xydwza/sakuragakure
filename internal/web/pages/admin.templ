@@ -5,12 +5,57 @@ import (
 
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
 )
+
+templ AdminDashboard(nav []components.NavItem, active string) {
+	@components.Layout("Admin · SakuraGakure", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Panel admin</h1><p class="muted">Kelola seluruh data aplikasi.</p></div>
+			<div class="grid2">
+				<a class="card" style="display:grid;gap:6px" href="/admin/user"><h3>Kelola user & peran</h3><p class="small muted">Buat user, atur peran, aktif/nonaktif.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/admin/audit"><h3>Log aktivitas</h3><p class="small muted">Jejak semua aksi.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/admin/galeri"><h3>Album & galeri</h3><p class="small muted">Kelola album dan foto kegiatan.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/admin/dokumen"><h3>Dokumen & media</h3><p class="small muted">Nota, bukti, dan file terunggah.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/kelola/mutasi"><h3>Keuangan</h3><p class="small muted">Mutasi, setoran, dan laporan kas.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/kelola/laporan"><h3>Laporan & ekspor</h3><p class="small muted">CSV, Excel, PDF.</p></a>
+			</div>
+		</div>
+	}
+}
 
 templ AdminUser(users []db.ListUserRow, csrf string, nav []components.NavItem, active string) {
 	@components.Layout("Kelola user · Admin", nav, active) {
 		<div class="stack">
-			<div><h1 style="font-size:28px">Kelola user</h1><p class="muted">Ubah nama, nomor WhatsApp, alamat, dan detail pengurus.</p></div>
+			<div class="between"><div><h1 style="font-size:28px">Kelola user</h1><p class="muted">Ubah nama, peran, nomor WA, alamat, dan aktif/nonaktif.</p></div><a class="btn ghost" href="/admin">← Admin</a></div>
+			<section class="card">
+				<h3>Buat user baru</h3>
+				<form class="form" style="margin-top:10px" method="post" action="/admin/user/baru">
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<div class="grid2">
+						<label class="field">Nama<input name="nama" required/></label>
+						<label class="field">Username<input name="username" placeholder="huruf kecil"/></label>
+						<label class="field">WhatsApp<input name="no_wa" inputmode="tel" placeholder="08xx"/></label>
+						<label class="field">Kata sandi<input name="password" placeholder="kosong = username"/></label>
+						<label class="field">Peran
+							<select name="peran">
+								for _, p := range DaftarPeran {
+									<option value={ p }>{ PeranNama(p) }</option>
+								}
+							</select>
+						</label>
+						<label class="field">Gang
+							<select name="gang">
+								<option value="0">—</option>
+								<option value="1">Gang 1</option>
+								<option value="2">Gang 2</option>
+								<option value="3">Gang 3</option>
+							</select>
+						</label>
+					</div>
+					<div><button class="btn">Buat user</button></div>
+				</form>
+			</section>
 			<section class="card"><div class="list">
 				for _, u := range users {
 					<div class="li">
@@ -26,19 +71,155 @@ templ AdminUser(users []db.ListUserRow, csrf string, nav []components.NavItem, a
 	}
 }
 
-templ AdminUserEdit(u db.UserByIDRow, csrf string, nav []components.NavItem, active string) {
+templ AdminUserEdit(u db.UserByIDRow, peran []db.UserPeranListRow, csrf string, nav []components.NavItem, active string) {
 	@components.Layout("Ubah user · Admin", nav, active) {
 		<div class="stack">
-			<div><h1 style="font-size:28px">Ubah user</h1></div>
+			<div class="between"><div><h1 style="font-size:28px">Ubah user</h1></div><a class="btn ghost" href="/admin/user">← User</a></div>
 			<section class="card">
 				<form class="form" method="post" action={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10)) }>
 					<input type="hidden" name="csrf_token" value={ csrf }/>
-					<label class="field">Nama<input name="nama" value={ u.Nama } required/></label>
-					<label class="field">Nomor WhatsApp<input name="no_wa" value={ u.NoWa } inputmode="tel"/></label>
-					<label class="field">Alamat<input name="alamat" value={ u.Alamat.String } placeholder="G11/19"/></label>
-					<label class="field">Detail<textarea name="detail" placeholder="Tugas, masa jabatan, dll.">{ u.Detail.String }</textarea></label>
-					<div><button class="btn">Simpan</button> <a class="btn ghost" href="/admin/user">Batal</a></div>
+					<div class="grid2">
+						<label class="field">Nama<input name="nama" value={ u.Nama } required/></label>
+						<label class="field">WhatsApp<input name="no_wa" value={ u.NoWa } inputmode="tel"/></label>
+						<label class="field">Alamat<input name="alamat" value={ u.Alamat.String } placeholder="G11/19"/></label>
+						<label class="field">Detail<textarea name="detail" placeholder="Tugas, masa jabatan, dll.">{ u.Detail.String }</textarea></label>
+					</div>
+					<div><button class="btn">Simpan</button></div>
 				</form>
+			</section>
+			<section class="card">
+				<h3>Peran</h3>
+				<div class="list" style="margin-top:6px">
+					if len(peran) == 0 {
+						<div class="empty">Belum ada peran.</div>
+					}
+					for _, p := range peran {
+						<div class="li">
+							<div class="grow"><b>{ PeranNama(p.Peran) }</b>
+								if p.Gang != 0 {
+									<span class="tiny faint"> gang { strconv.FormatInt(p.Gang, 10) }</span>
+								}
+							</div>
+							<form method="post" action={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10) + "/peran/hapus") }>
+								<input type="hidden" name="csrf_token" value={ csrf }/>
+								<input type="hidden" name="peran" value={ p.Peran }/>
+								<input type="hidden" name="gang" value={ strconv.FormatInt(p.Gang, 10) }/>
+								<button class="btn sm ghost">Hapus</button>
+							</form>
+						</div>
+					}
+				</div>
+				<form class="form" style="margin-top:12px" method="post" action={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10) + "/peran/tambah") }>
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<div class="grid2">
+						<label class="field">Tambah peran
+							<select name="peran">
+								for _, p := range DaftarPeran {
+									<option value={ p }>{ PeranNama(p) }</option>
+								}
+							</select>
+						</label>
+						<label class="field">Gang
+							<select name="gang">
+								<option value="0">—</option>
+								<option value="1">Gang 1</option>
+								<option value="2">Gang 2</option>
+								<option value="3">Gang 3</option>
+							</select>
+						</label>
+					</div>
+					<div><button class="btn soft">Tambah peran</button></div>
+				</form>
+			</section>
+			<section class="card">
+				<form method="post" action={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10) + "/aktif") }>
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<input type="hidden" name="aktif" value={ strconv.FormatInt(1-u.Aktif, 10) }/>
+					if u.Aktif == 1 {
+						<button class="btn ghost">Nonaktifkan akun</button>
+					} else {
+						<button class="btn leaf">Aktifkan akun</button>
+					}
+				</form>
+			</section>
+		</div>
+	}
+}
+
+templ AdminAudit(audits []db.ListAuditRow, nav []components.NavItem, active string) {
+	@components.Layout("Log aktivitas · Admin", nav, active) {
+		<div class="stack">
+			<div class="between"><div><h1 style="font-size:28px">Log aktivitas</h1></div><a class="btn ghost" href="/admin">← Admin</a></div>
+			<section class="card">
+				if len(audits) == 0 {
+					<div class="empty">Belum ada aktivitas tercatat.</div>
+				} else {
+					<div class="list">
+						for _, a := range audits {
+							<div class="li">
+								<div class="grow"><b>{ a.Aksi }</b> <span class="muted">{ a.Objek }</span>
+									<div class="tiny faint">{ a.At } · { a.UserNama }
+										if a.Detail.Valid {
+											· { a.Detail.String }
+										}
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				}
+			</section>
+		</div>
+	}
+}
+
+templ AdminGaleri(albums []db.ListAlbumRow, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Album & galeri · Admin", nav, active) {
+		<div class="stack">
+			<div class="between"><div><h1 style="font-size:28px">Album & galeri</h1></div><a class="btn ghost" href="/admin">← Admin</a></div>
+			<section class="card">
+				if len(albums) == 0 {
+					<div class="empty">Belum ada album.</div>
+				} else {
+					<div class="list">
+						for _, a := range albums {
+							<div class="li">
+								<div class="grow"><b>{ a.Judul }</b><div class="tiny faint">{ format.TglID(a.Tanggal) }</div></div>
+								<a class="btn sm ghost" href={ templ.URL("/kegiatan/" + a.Slug) }>Lihat</a>
+								<form method="post" action={ templ.URL("/admin/galeri/" + strconv.FormatInt(a.ID, 10) + "/hapus") }>
+									<input type="hidden" name="csrf_token" value={ csrf }/>
+									<button class="btn sm ghost">Hapus</button>
+								</form>
+							</div>
+						}
+					</div>
+				}
+			</section>
+		</div>
+	}
+}
+
+templ AdminDokumen(media []db.ListMediaRow, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Dokumen & media · Admin", nav, active) {
+		<div class="stack">
+			<div class="between"><div><h1 style="font-size:28px">Dokumen & media</h1><p class="muted">Semua file terunggah (nota, bukti, foto).</p></div><a class="btn ghost" href="/admin">← Admin</a></div>
+			<section class="card">
+				if len(media) == 0 {
+					<div class="empty">Belum ada media.</div>
+				} else {
+					<div class="list">
+						for _, m := range media {
+							<div class="li">
+								<div class="grow"><b>#{ strconv.FormatInt(m.ID, 10) }</b> <span class="muted">{ m.Mime } · { format.FormatRupiah(m.Ukuran) }</span><div class="tiny faint">{ m.DibuatAt } · akses { m.Akses }</div></div>
+								<a class="btn sm ghost" href={ templ.URL("/m/" + strconv.FormatInt(m.ID, 10) + "/full") }>Lihat</a>
+								<form method="post" action={ templ.URL("/admin/dokumen/" + strconv.FormatInt(m.ID, 10) + "/hapus") }>
+									<input type="hidden" name="csrf_token" value={ csrf }/>
+									<button class="btn sm ghost">Hapus</button>
+								</form>
+							</div>
+						}
+					</div>
+				}
 			</section>
 		</div>
 	}

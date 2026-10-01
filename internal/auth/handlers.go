@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"sakuragakure/internal/audit"
 )
 
 // Login memverifikasi kata sandi dan menerbitkan token JWT.
@@ -32,6 +34,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: cookieSecure(),
 		MaxAge: int(sesiTTL.Seconds()),
 	})
+	audit.Tulis(a.DB, id, "masuk", "sesi", "", "", r.RemoteAddr)
 	http.Redirect(w, r, a.tujuanLogin(id), http.StatusSeeOther)
 }
 
@@ -43,7 +46,7 @@ func (a *Auth) tujuanLogin(userID int64) string {
 	}
 	switch peran {
 	case "admin":
-		return "/admin/user"
+		return "/admin"
 	case "warga":
 		return "/"
 	default:
