@@ -16,6 +16,7 @@ test: vet
 
 generate:
 	templ generate
+	sqlc generate
 
 fmt:
 	gofmt -w .

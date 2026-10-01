@@ -1,25 +1,29 @@
 package pages
 
-import "sakuragakure/internal/web/components"
+import (
+	"sakuragakure/internal/kas"
+	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
+)
 
-templ Beranda() {
+templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string) {
 	@components.Layout("Beranda · RT 06 / RW 28 Sakura") {
 		<div class="stack">
 			<div class="hero">
 				<div class="hero-text">
 					<h1>Kabar, kas, dan kegiatan warga <span class="soft">RT 06 Sakura.</span></h1>
 					<p class="muted">120 rumah di tiga gang, Cluster Sakura, Grand Cikarang City. Setiap rupiah iuran tercatat di sini, lengkap dengan notanya.</p>
-					<div class="row" style="flex-wrap:wrap"><button class="btn" type="button">Lihat laporan kas</button><button class="btn ghost" type="button">Hubungi pengurus</button></div>
+					<div class="row" style="flex-wrap:wrap"><a class="btn" href="/kas">Lihat laporan kas</a></div>
 				</div>
 			</div>
-			<div class="grid3">
-				<div class="pos main"><span class="small muted">Saldo kas RT</span><span class="big num">Rp 0</span><span class="tiny muted">belum ada mutasi</span></div>
-				<div class="pos"><span class="small muted">Dana sosial</span><span class="big num">Rp 0</span><span class="tiny faint">dialokasikan dari kas RT</span></div>
-				<div class="pos"><span class="small muted">Rukun kematian</span><span class="big num">Rp 0</span><span class="tiny faint">iuran Rp50.000 per KK</span></div>
-			</div>
+			@components.PosCards(kasRT, dansos, rukem, diKoordinator)
 			<section class="card">
-				<div class="section-h"><h2>Iuran per gang</h2><p class="small muted">Satu kelopak satu rumah wajib iuran. Nama dan alamat tidak ditampilkan.</p></div>
-				<p class="small muted">Kelopak, grafik, dan mutasi diisi pada fase berikutnya.</p>
+				<div class="section-h">
+					<div><h2>Iuran per gang</h2><p class="small muted">Satu kelopak satu rumah wajib iuran. Nama dan alamat tidak ditampilkan.</p></div>
+					<span class="pill sak">{ format.LabelBulan(periode) }</span>
+				</div>
+				@components.Kelopak(kelopak)
+				<div class="legend" style="margin-top:10px"><span><i style="background:var(--sakura);border-color:var(--sakura)"></i>Diterima bendahara</span><span><i style="background:var(--sakura-soft);border-color:var(--sakura)"></i>Sudah ditarik koordinator</span><span><i></i>Belum</span></div>
 			</section>
 		</div>
 	}

@@ -9,12 +9,14 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"sakuragakure/internal/kas"
+	"strconv"
+
+	"sakuragakure/internal/db"
 	"sakuragakure/internal/web/components"
 	"sakuragakure/internal/web/format"
 )
 
-func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string) templ.Component {
+func Kas(kasRT, dansos, rukem, diKoordinator int64, grafik string, mutasi []db.MutasiPublikRow, dansosJumlah, dansosTotal int64) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -47,7 +49,7 @@ func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, p
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"stack\"><div class=\"hero\"><div class=\"hero-text\"><h1>Kabar, kas, dan kegiatan warga <span class=\"soft\">RT 06 Sakura.</span></h1><p class=\"muted\">120 rumah di tiga gang, Cluster Sakura, Grand Cikarang City. Setiap rupiah iuran tercatat di sini, lengkap dengan notanya.</p><div class=\"row\" style=\"flex-wrap:wrap\"><a class=\"btn\" href=\"/kas\">Lihat laporan kas</a></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"stack\"><div><h1 style=\"font-size:28px\">Laporan kas RT</h1><p class=\"muted\">Saldo dihitung dari semua mutasi. Pengeluaran selalu dilampiri foto nota.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -55,34 +57,55 @@ func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, p
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<section class=\"card\"><div class=\"section-h\"><div><h2>Iuran per gang</h2><p class=\"small muted\">Satu kelopak satu rumah wajib iuran. Nama dan alamat tidak ditampilkan.</p></div><span class=\"pill sak\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<section class=\"card\"><div class=\"section-h\"><h2>Pemasukan dan pengeluaran</h2><span class=\"small faint\">Kas RT, tanpa alokasi antar pos</span></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templ.Raw(grafik).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</section><section class=\"card\"><div class=\"section-h\"><h2>Dana sosial</h2><span class=\"pill sak\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(format.LabelBulan(periode))
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.FormatInt(dansosJumlah, 10))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pages/beranda.templ`, Line: 23, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pages/kas.templ`, Line: 19, Col: 128}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " penyaluran tahun ini</span></div><p class=\"small muted\">Total disalurkan ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Kelopak(kelopak).Render(ctx, templ_7745c5c3_Buffer)
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(format.FormatRupiah(dansosTotal))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/pages/kas.templ`, Line: 20, Col: 78}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"legend\" style=\"margin-top:10px\"><span><i style=\"background:var(--sakura);border-color:var(--sakura)\"></i>Diterima bendahara</span><span><i style=\"background:var(--sakura-soft);border-color:var(--sakura)\"></i>Sudah ditarik koordinator</span><span><i></i>Belum</span></div></section></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ". Nama penerima dan alasannya hanya terlihat oleh pengurus, sesuai privasi warga.</p></section><section class=\"card\"><div class=\"section-h\"><h2>Mutasi kas</h2></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = components.MutasiList(mutasi).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</section></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = components.Layout("Beranda · RT 06 / RW 28 Sakura").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.Layout("Kas RT · RT 06 / RW 28 Sakura").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

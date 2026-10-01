@@ -1,0 +1,64 @@
+package components
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/kas"
+	"sakuragakure/internal/web/format"
+)
+
+templ PosCards(kasRT, dansos, rukem, diKoordinator int64) {
+	<div class="grid3">
+		<div class="pos main"><span class="small muted">Saldo kas RT</span><span class="big num">{ format.FormatRupiah(kasRT) }</span><span class="tiny muted">total mutasi kas</span></div>
+		<div class="pos"><span class="small muted">Dana sosial</span><span class="big num">{ format.FormatRupiah(dansos) }</span><span class="tiny faint">dialokasikan dari kas RT</span></div>
+		<div class="pos"><span class="small muted">Rukun kematian</span><span class="big num">{ format.FormatRupiah(rukem) }</span><span class="tiny faint">iuran Rp50.000 per KK</span></div>
+		<div class="pos"><span class="small muted">Masih di koordinator gang</span><span class="big num">{ format.FormatRupiah(diKoordinator) }</span><span class="tiny faint">sudah ditarik, belum diterima bendahara</span></div>
+	</div>
+}
+
+templ Kelopak(daftar []kas.Kelopak) {
+	for _, k := range daftar {
+		<div class="gangrow">
+			<div><b>Gang { strconv.Itoa(k.Gang) }</b></div>
+			<div class="petals" aria-hidden="true">
+				for i := 0; i < k.Total; i++ {
+					if i < k.Diterima {
+						<span class="petal on"></span>
+					} else if i < k.Diterima+k.Dipegang {
+						<span class="petal held"></span>
+					} else {
+						<span class="petal"></span>
+					}
+				}
+			</div>
+			<div class="num" style="text-align:right"><b>{ strconv.Itoa(k.Diterima) }</b><span class="faint">/{ strconv.Itoa(k.Total) }</span>
+				if k.Dipegang > 0 {
+					<div class="tiny" style="color:var(--sakura-ink)">+{ strconv.Itoa(k.Dipegang) } di koordinator</div>
+				}
+			</div>
+		</div>
+	}
+}
+
+templ MutasiList(daftar []db.MutasiPublikRow) {
+	if len(daftar) == 0 {
+		<div class="empty">Belum ada mutasi.</div>
+	} else {
+		<div class="list">
+			for _, m := range daftar {
+				<div class="li">
+					<div class="grow">
+						<div style="font-weight:600">{ m.KeteranganPublik }</div>
+						<div class="tiny faint">{ format.TglID(m.Tanggal) }, { m.PosNama }, { m.Kategori }</div>
+					</div>
+					if m.Arah == "masuk" {
+						<span class="amt in num">+{ format.FormatRupiah(m.Nominal) }</span>
+					} else {
+						<span class="amt out num">−{ format.FormatRupiah(m.Nominal) }</span>
+					}
+				</div>
+			}
+		</div>
+	}
+}

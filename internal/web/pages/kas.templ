@@ -1,0 +1,27 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
+)
+
+templ Kas(kasRT, dansos, rukem, diKoordinator int64, grafik string, mutasi []db.MutasiPublikRow, dansosJumlah, dansosTotal int64) {
+	@components.Layout("Kas RT · RT 06 / RW 28 Sakura") {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Laporan kas RT</h1><p class="muted">Saldo dihitung dari semua mutasi. Pengeluaran selalu dilampiri foto nota.</p></div>
+			@components.PosCards(kasRT, dansos, rukem, diKoordinator)
+			<section class="card"><div class="section-h"><h2>Pemasukan dan pengeluaran</h2><span class="small faint">Kas RT, tanpa alokasi antar pos</span></div>
+				@templ.Raw(grafik)
+			</section>
+			<section class="card"><div class="section-h"><h2>Dana sosial</h2><span class="pill sak">{ strconv.FormatInt(dansosJumlah, 10) } penyaluran tahun ini</span></div>
+				<p class="small muted">Total disalurkan { format.FormatRupiah(dansosTotal) }. Nama penerima dan alasannya hanya terlihat oleh pengurus, sesuai privasi warga.</p>
+			</section>
+			<section class="card"><div class="section-h"><h2>Mutasi kas</h2></div>
+				@components.MutasiList(mutasi)
+			</section>
+		</div>
+	}
+}

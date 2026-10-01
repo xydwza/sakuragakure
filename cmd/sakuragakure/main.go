@@ -15,7 +15,6 @@ import (
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/rumah"
 	"sakuragakure/internal/web"
-	"sakuragakure/internal/web/pages"
 )
 
 func main() {
@@ -72,9 +71,9 @@ func serve(args []string) {
 		w.Write([]byte("ok"))
 	})
 	r.Handle("/static/*", web.StaticHandler())
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		pages.Beranda().Render(r.Context(), w)
-	})
+	h := web.NewHandlers(conn)
+	r.Get("/", h.Beranda)
+	r.Get("/kas", h.Kas)
 	r.Get("/masuk", a.LoginPage)
 	r.Post("/masuk/wa", a.MintaOTP)
 	r.Post("/masuk/kode", a.VerifikasiOTP)
