@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -42,11 +41,6 @@ func TestPrivasiPublik(t *testing.T) {
 	a := auth.New(conn, []byte("test-key-123456789012345678901234567890"))
 	h := NewHandlers(conn, a, t.TempDir())
 
-	req := func(path string) *http.Request {
-		ctx, _ := a.Sessions.Load(context.Background(), "")
-		return httptest.NewRequest(http.MethodGet, path, nil).WithContext(ctx)
-	}
-
 	cases := map[string]http.HandlerFunc{
 		"/":         h.Beranda,
 		"/kas":      h.Kas,
@@ -55,7 +49,7 @@ func TestPrivasiPublik(t *testing.T) {
 	}
 	for path, handler := range cases {
 		rr := httptest.NewRecorder()
-		handler(rr, req(path))
+		handler(rr, httptest.NewRequest(http.MethodGet, path, nil))
 		if rr.Code != http.StatusOK {
 			t.Fatalf("%s: kode %d", path, rr.Code)
 		}
@@ -66,7 +60,7 @@ func TestPrivasiPublik(t *testing.T) {
 
 	// kontrol positif: kas tetap menampilkan keterangan publik
 	rr := httptest.NewRecorder()
-	h.Kas(rr, req("/kas"))
+	h.Kas(rr, httptest.NewRequest(http.MethodGet, "/kas", nil))
 	if !strings.Contains(rr.Body.String(), "Setoran iuran warga") {
 		t.Fatalf("/kas tidak menampilkan keterangan_publik (uji positif gagal)")
 	}

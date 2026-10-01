@@ -5,17 +5,20 @@ import (
 	"time"
 )
 
-// BuatUser membuat user aktif beserta satu peran. Digunakan createadmin dan
-// (nanti) kelola user. Nomor WA dinormalisasi ke E.164.
-func BuatUser(db *sql.DB, nama, noWA, peran string, gang int) (int64, error) {
+// BuatUser membuat user aktif dengan kata sandi (ter-hash) beserta satu peran.
+func BuatUser(db *sql.DB, nama, noWA, peran, password string, gang int) (int64, error) {
+	hash, err := hashPassword(password)
+	if err != nil {
+		return 0, err
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
 
-	res, err := tx.Exec(`INSERT INTO user (nama, no_wa, aktif, created_at) VALUES (?, ?, 1, ?)`,
-		nama, normalisasiWA(noWA), now().Format(time.RFC3339))
+	res, err := tx.Exec(`INSERT INTO user (nama, no_wa, aktif, password_hash, created_at) VALUES (?, ?, 1, ?, ?)`,
+		nama, normalisasiWA(noWA), hash, now().Format(time.RFC3339))
 	if err != nil {
 		return 0, err
 	}

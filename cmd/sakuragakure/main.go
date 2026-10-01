@@ -70,10 +70,10 @@ func serve(args []string) {
 		log.Fatalf("migrasi gagal: %v", err)
 	}
 
-	a := auth.New(conn, auth.SessionKey())
+	a := auth.New(conn, auth.SecretKey())
 
 	r := chi.NewRouter()
-	r.Use(a.Sessions.LoadAndSave)
+	r.Use(a.Middleware)
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
@@ -121,10 +121,8 @@ func serve(args []string) {
 	})
 
 	r.Get("/masuk", a.LoginPage)
-	r.Post("/masuk/wa", a.MintaOTP)
-	r.Post("/masuk/kode", a.VerifikasiOTP)
-	r.Post("/masuk/kode-cadangan", a.KodeCadangan)
-	r.Post("/keluar", a.Keluar)
+	r.Post("/masuk", a.Login)
+	r.Post("/keluar", a.Logout)
 
 	log.Printf("sakuragakure listen di %s", *addr)
 	if err := http.ListenAndServe(*addr, nosurf.New(r)); err != nil {
@@ -136,13 +134,14 @@ func createadmin(args []string) {
 	fs := flag.NewFlagSet("createadmin", flag.ExitOnError)
 	nama := fs.String("nama", "", "nama admin")
 	wa := fs.String("wa", "", "nomor WhatsApp E.164 (+62...)")
+	password := fs.String("password", "", "kata sandi")
 	peran := fs.String("peran", "admin", "peran awal")
 	gang := fs.Int("gang", 0, "gang (untuk peran koordinator/pembantu)")
 	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
 	fs.Parse(args)
 
-	if *nama == "" || *wa == "" {
-		log.Fatal("--nama dan --wa wajib diisi")
+	if *nama == "" || *wa == "" || *password == "" {
+		log.Fatal("--nama, --wa, dan --password wajib diisi")
 	}
 
 	conn, err := db.Open(*dbPath)
@@ -154,7 +153,7 @@ func createadmin(args []string) {
 		log.Fatalf("migrasi gagal: %v", err)
 	}
 
-	id, err := auth.BuatUser(conn, *nama, *wa, *peran, *gang)
+	id, err := auth.BuatUser(conn, *nama, *wa, *peran, *password, *gang)
 	if err != nil {
 		log.Fatalf("gagal buat user: %v", err)
 	}

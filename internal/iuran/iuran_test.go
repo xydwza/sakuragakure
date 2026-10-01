@@ -50,6 +50,9 @@ func TestAlurIuranLengkap(t *testing.T) {
 	koord := seedUser(t, conn, "Koord", "+628100")
 	bendahara := seedUser(t, conn, "Bendahara", "+628200")
 
+	var baseKas int64
+	conn.QueryRow(`SELECT COALESCE(SUM(CASE WHEN arah='masuk' THEN nominal ELSE -nominal END),0) FROM mutasi WHERE pos_id='kas_rt'`).Scan(&baseKas)
+
 	r1 := seedRumah(t, conn, "G10/01", 1, "tetap", "")
 	r2 := seedRumah(t, conn, "G10/02", 1, "kontrak", "")
 	seedRumah(t, conn, "G10/03", 1, "kosong", "")
@@ -111,8 +114,8 @@ func TestAlurIuranLengkap(t *testing.T) {
 	}
 	var saldo int64
 	conn.QueryRow(`SELECT COALESCE(SUM(CASE WHEN arah='masuk' THEN nominal ELSE -nominal END),0) FROM mutasi WHERE pos_id='kas_rt'`).Scan(&saldo)
-	if saldo != 50000 {
-		t.Fatalf("saldo kas_rt ingin 50000, dapat %d", saldo)
+	if saldo != baseKas+50000 {
+		t.Fatalf("saldo kas_rt ingin %d, dapat %d", baseKas+50000, saldo)
 	}
 	// toggle setelah diterima -> error
 	if _, err := s.TogglePembayaran(ctx, koord, "G10/01", "2026-10"); err == nil {
@@ -133,6 +136,9 @@ func TestTolakSetoran(t *testing.T) {
 	bendahara := seedUser(t, conn, "Bendahara", "+628200")
 	seedRumah(t, conn, "G10/01", 1, "tetap", "")
 
+	var baseMutasi int
+	conn.QueryRow(`SELECT COUNT(*) FROM mutasi`).Scan(&baseMutasi)
+
 	if _, err := s.TogglePembayaran(ctx, koord, "G10/01", "2026-10"); err != nil {
 		t.Fatal(err)
 	}
@@ -150,10 +156,10 @@ func TestTolakSetoran(t *testing.T) {
 	if st != "dipegang" {
 		t.Fatalf("setelah tolak ingin dipegang, dapat %s", st)
 	}
-	// tidak ada mutasi masuk
+	// tolak tidak menambah mutasi
 	var n int
 	conn.QueryRow(`SELECT COUNT(*) FROM mutasi`).Scan(&n)
-	if n != 0 {
-		t.Fatalf("tolak tidak boleh membuat mutasi, dapat %d", n)
+	if n != baseMutasi {
+		t.Fatalf("tolak tidak boleh membuat mutasi, dapat %d (base %d)", n, baseMutasi)
 	}
 }

@@ -83,12 +83,23 @@ func TestKelopakPerGang(t *testing.T) {
 	}
 }
 
+func saldoPos(t *testing.T, conn *sql.DB, pos string) int64 {
+	t.Helper()
+	var n int64
+	if err := conn.QueryRow(`SELECT COALESCE(SUM(CASE WHEN arah='masuk' THEN nominal ELSE -nominal END),0) FROM mutasi WHERE pos_id = ?`, pos).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
 func TestSaldoPosis(t *testing.T) {
 	s, conn := newKas(t)
 	ctx := context.Background()
 	if _, err := conn.Exec(`INSERT INTO user (nama, no_wa, created_at) VALUES ('T', '+628', '2026-10-01T00:00:00+07:00')`); err != nil {
 		t.Fatal(err)
 	}
+	baseKas := saldoPos(t, conn, "kas_rt")
+	baseDansos := saldoPos(t, conn, "dana_sosial")
 	for _, q := range []string{
 		`INSERT INTO mutasi (pos_id, tanggal, arah, nominal, kategori, keterangan, keterangan_publik, dibuat_oleh, dibuat_at) VALUES ('kas_rt','2026-10-01','masuk',50000,'Iuran','i','i',1,'2026-10-01T00:00:00+07:00')`,
 		`INSERT INTO mutasi (pos_id, tanggal, arah, nominal, kategori, keterangan, keterangan_publik, ref_tipe, dibuat_oleh, dibuat_at) VALUES ('kas_rt','2026-10-02','keluar',10000,'Alokasi','b','b','alokasi',1,'2026-10-01T00:00:00+07:00')`,
@@ -102,7 +113,7 @@ func TestSaldoPosis(t *testing.T) {
 	if err != nil {
 		t.Fatalf("saldo: %v", err)
 	}
-	if m["kas_rt"] != 40000 || m["dana_sosial"] != 20000 {
+	if m["kas_rt"] != baseKas+40000 || m["dana_sosial"] != baseDansos+20000 {
 		t.Fatalf("saldo salah: %+v", m)
 	}
 }
@@ -115,6 +126,7 @@ func TestCatatPengeluaran(t *testing.T) {
 	}
 	res, _ := conn.Exec(`INSERT INTO media (path, thumb_path, mime, ukuran, akses, dibuat_at) VALUES ('/tmp/x.jpg','/tmp/x_t.jpg','image/jpeg',10,'warga','2026-10-01T00:00:00+07:00')`)
 	mediaID, _ := res.LastInsertId()
+	baseKas := saldoPos(t, conn, "kas_rt")
 
 	// tanpa nota -> ditolak
 	if _, err := s.CatatPengeluaran(ctx, 1, "kas_rt", "2026-10-05", "ATK", "beli", "beli", 10000, 0); err == nil {
@@ -124,9 +136,7 @@ func TestCatatPengeluaran(t *testing.T) {
 	if _, err := s.CatatPengeluaran(ctx, 1, "kas_rt", "2026-10-05", "ATK", "beli", "beli", 10000, mediaID); err != nil {
 		t.Fatalf("pengeluaran bernota: %v", err)
 	}
-	var saldo int64
-	conn.QueryRow(`SELECT COALESCE(SUM(CASE WHEN arah='masuk' THEN nominal ELSE -nominal END),0) FROM mutasi WHERE pos_id='kas_rt'`).Scan(&saldo)
-	if saldo != -10000 {
-		t.Fatalf("saldo ingin -10000, dapat %d", saldo)
+	if saldo := saldoPos(t, conn, "kas_rt"); saldo != baseKas-10000 {
+		t.Fatalf("saldo ingin %d, dapat %d", baseKas-10000, saldo)
 	}
 }

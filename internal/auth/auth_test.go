@@ -33,3 +33,27 @@ func seedUser(t *testing.T, conn *sql.DB, nama, noWA, peran string) int64 {
 	}
 	return id
 }
+
+func TestBuatUserPassword(t *testing.T) {
+	conn := newTestDB(t)
+	id, err := BuatUser(conn, "Bendahara", "+628123", "bendahara", "rahasia123", 0)
+	if err != nil {
+		t.Fatalf("buat user: %v", err)
+	}
+	var hash string
+	if err := conn.QueryRow(`SELECT password_hash FROM user WHERE id = ?`, id).Scan(&hash); err != nil {
+		t.Fatal(err)
+	}
+	if !cekPassword(hash, "rahasia123") {
+		t.Fatalf("kata sandi benar harusnya cocok")
+	}
+	if cekPassword(hash, "salah") {
+		t.Fatalf("kata sandi salah harusnya gagal")
+	}
+	// no_wa dinormalisasi
+	var noWA string
+	conn.QueryRow(`SELECT no_wa FROM user WHERE id = ?`, id).Scan(&noWA)
+	if noWA != "+628123" {
+		t.Fatalf("no_wa ingin +628123, dapat %q", noWA)
+	}
+}

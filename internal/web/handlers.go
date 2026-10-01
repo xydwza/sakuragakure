@@ -81,6 +81,10 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 }
 
 func (h *Handlers) Beranda(w http.ResponseWriter, r *http.Request) {
+	if strings.HasPrefix(r.Host, "pengurus.") {
+		http.Redirect(w, r, "/masuk", http.StatusSeeOther)
+		return
+	}
 	ctx := r.Context()
 	periode := r.URL.Query().Get("periode")
 	if periode == "" {

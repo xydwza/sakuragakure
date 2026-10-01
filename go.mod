@@ -4,15 +4,16 @@ go 1.23.0
 
 require (
 	github.com/a-h/templ v0.3.850
-	github.com/alexedwards/scs/v2 v2.9.0
+	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi/v5 v5.3.2
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/justinas/nosurf v1.2.0
 	github.com/pressly/goose/v3 v3.24.0
+	golang.org/x/crypto v0.35.0
 	modernc.org/sqlite v1.39.0
 )
 
 require (
-	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

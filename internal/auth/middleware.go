@@ -11,11 +11,6 @@ type Peran struct {
 	Gang  int
 }
 
-// UserID mengembalikan id user dari sesi (0 bila belum masuk).
-func (a *Auth) UserID(ctx context.Context) int64 {
-	return a.Sessions.GetInt64(ctx, "userID")
-}
-
 // PeranList mengembalikan semua peran user yang sedang masuk.
 func (a *Auth) PeranList(ctx context.Context) ([]Peran, error) {
 	uid := a.UserID(ctx)
