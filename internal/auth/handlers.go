@@ -2,27 +2,10 @@ package auth
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/justinas/nosurf"
 )
-
-// LoginPage menampilkan form masuk (nomor WA + kata sandi).
-func (a *Auth) LoginPage(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Masuk</title></head><body>
-<h1>Masuk pengurus</h1>
-<form method="post" action="/masuk">
-  <input type="hidden" name="csrf_token" value="%s">
-  <label>Nomor WhatsApp <input name="no_wa" inputmode="tel" placeholder="08xx" required></label><br>
-  <label>Kata sandi <input name="password" type="password" required></label><br>
-  <button>Masuk</button>
-</form>
-</body></html>`, nosurf.Token(r))
-}
 
 // Login memverifikasi kata sandi dan menerbitkan token JWT.
 func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {

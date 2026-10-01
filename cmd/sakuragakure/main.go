@@ -136,7 +136,7 @@ func serve(args []string) {
 		r.Post("/admin/user/{id}", h.AdminUserSave)
 	})
 
-	r.Get("/masuk", a.LoginPage)
+	r.Get("/masuk", h.LoginPage)
 	r.Post("/masuk", a.Login)
 	r.Post("/keluar", a.Logout)
 

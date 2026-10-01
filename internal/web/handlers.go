@@ -88,6 +88,10 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 	}
 }
 
+func (h *Handlers) LoginPage(w http.ResponseWriter, r *http.Request) {
+	pages.Login(nosurf.Token(r)).Render(r.Context(), w)
+}
+
 func (h *Handlers) Beranda(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(r.Host, "pengurus.") {
 		http.Redirect(w, r, "/masuk", http.StatusSeeOther)
