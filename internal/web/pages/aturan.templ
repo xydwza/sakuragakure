@@ -1,0 +1,37 @@
+package pages
+
+import (
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/web/components"
+)
+
+templ Aturan(pasal []db.AturanPasal, q string, nav []components.NavItem, active string) {
+	@components.Layout("Aturan RT (AD/ART) · RT 06 / RW 28 Sakura", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Aturan RT (AD/ART)</h1><p class="muted">Ditetapkan di Cikarang, 11 April 2026. Cari kata seperti "iuran", "tamu", atau "dana sosial".</p></div>
+			<form method="get" action="/aturan">
+				<label class="field"><span class="sr">Cari aturan</span><input type="search" name="q" placeholder="Cari di AD/ART" value={ q } autocomplete="off"/></label>
+			</form>
+			<section class="card">
+				if len(pasal) == 0 {
+					<div class="empty">Tidak ada pasal yang memuat "{ q }".</div>
+				} else {
+					for _, p := range pasal {
+						<div class="pasal" id={ "pasal-" + p.ID }>
+							<div class="between"><h3>{ p.Bab }, { p.Judul }</h3></div>
+							if len(Ayat(p.IsiMd)) == 1 {
+								<p class="small muted" style="margin-top:6px">{ Ayat(p.IsiMd)[0] }</p>
+							} else {
+								<ol>
+									for _, a := range Ayat(p.IsiMd) {
+										<li>{ a }</li>
+									}
+								</ol>
+							}
+						</div>
+					}
+				}
+			</section>
+		</div>
+	}
+}

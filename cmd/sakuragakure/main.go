@@ -79,7 +79,17 @@ func serve(args []string) {
 	h := web.NewHandlers(conn, a, envOr("MEDIA_DIR", "data/media"))
 	r.Get("/", h.Beranda)
 	r.Get("/kas", h.Kas)
+	r.Get("/aturan", h.Aturan)
+	r.Get("/pengurus", h.Pengurus)
+	r.Get("/kegiatan", h.Kegiatan)
+	r.Get("/kegiatan/{slug}", h.AlbumDetail)
 	r.Get("/m/{id}/{kind}", h.MediaServe)
+
+	// warga
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequireLogin)
+		r.Get("/rumahku", h.Rumahku)
+	})
 
 	// koordinator
 	r.Group(func(r chi.Router) {
@@ -98,6 +108,12 @@ func serve(args []string) {
 		r.Get("/kelola/mutasi", h.MutasiPage)
 		r.Get("/kelola/mutasi/baru", h.MutasiBaruPage)
 		r.Post("/kelola/mutasi/baru", h.MutasiBaruSubmit)
+	})
+	// sekretaris + ketua (posting)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("sekretaris", "ketua"))
+		r.Get("/kelola/konten/posting", h.PostingPage)
+		r.Post("/kelola/konten/posting", h.PostingSubmit)
 	})
 
 	r.Get("/masuk", a.LoginPage)

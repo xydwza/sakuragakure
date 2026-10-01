@@ -125,3 +125,19 @@ File:
 Dependensi baru: `github.com/disintegration/imaging`.
 
 Kriteria selesai: pengeluaran tanpa nota gagal (CHECK); nota tersimpan + thumbnail; media akses `warga` tidak bisa diakses tamu; `make test` hijau.
+
+Selesai.
+
+## Fase 1i — rumahku, aturan, pengurus, galeri + posting kegiatan
+
+Tujuan: halaman publik/warga/konten yang tersisa.
+
+File:
+- `internal/db/queries/konten.sql` — aturan, pengurus, rumah user, iuran rumah, album, foto
+- `internal/konten/konten.go` — `BuatAlbum` (album + album_foto) + slug
+- `internal/konten/konten_test.go`
+- `internal/web/pages/aturan.templ`, `pengurus.templ`, `rumahku.templ`, `kegiatan.templ`, `album.templ`, `posting.templ`
+- `internal/web/handlers.go` — route `/aturan`, `/pengurus`, `/kegiatan`, `/kegiatan/{slug}`, `/rumahku`, `/kelola/konten/posting`
+- nav publik + warga + sekretaris
+
+Kriteria selesai: aturan bisa dicari; struktur pengurus dari peran; rumahku menampilkan status iuran; posting kegiatan membuat album + foto; `make test` hijau.

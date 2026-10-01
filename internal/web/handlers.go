@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +16,7 @@ import (
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/kas"
+	"sakuragakure/internal/konten"
 	"sakuragakure/internal/media"
 	"sakuragakure/internal/web/components"
 	"sakuragakure/internal/web/format"
@@ -23,14 +25,21 @@ import (
 
 // Handlers memegang service untuk halaman web.
 type Handlers struct {
-	kas   *kas.Service
-	iuran *iuran.Service
-	media *media.Service
-	auth  *auth.Auth
+	kas    *kas.Service
+	iuran  *iuran.Service
+	media  *media.Service
+	konten *konten.Service
+	auth   *auth.Auth
 }
 
 func NewHandlers(conn *sql.DB, a *auth.Auth, mediaDir string) *Handlers {
-	return &Handlers{kas: kas.New(conn), iuran: iuran.New(conn), media: media.New(conn, mediaDir), auth: a}
+	return &Handlers{
+		kas:    kas.New(conn),
+		iuran:  iuran.New(conn),
+		media:  media.New(conn, mediaDir),
+		konten: konten.New(conn),
+		auth:   a,
+	}
 }
 
 // nav membangun navigasi sesuai peran user yang sedang masuk.
@@ -38,6 +47,9 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 	publik := []components.NavItem{
 		{Key: "beranda", Label: "Beranda", Href: "/"},
 		{Key: "kas", Label: "Kas RT", Href: "/kas"},
+		{Key: "kegiatan", Label: "Kegiatan", Href: "/kegiatan"},
+		{Key: "aturan", Label: "Aturan", Href: "/aturan"},
+		{Key: "pengurus", Label: "Pengurus", Href: "/pengurus"},
 	}
 	if h.auth.UserID(r.Context()) == 0 {
 		return publik
@@ -55,11 +67,17 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 			return []components.NavItem{
 				{Key: "setoran", Label: "Setoran", Href: "/kelola/setoran"},
 				{Key: "mutasi", Label: "Mutasi", Href: "/kelola/mutasi"},
+				{Key: "posting", Label: "Posting", Href: "/kelola/konten/posting"},
 				{Key: "kas", Label: "Kas RT", Href: "/kas"},
 			}
 		}
 	}
-	return publik
+	return []components.NavItem{
+		{Key: "rumahku", Label: "Rumahku", Href: "/rumahku"},
+		{Key: "kas", Label: "Kas RT", Href: "/kas"},
+		{Key: "kegiatan", Label: "Kegiatan", Href: "/kegiatan"},
+		{Key: "aturan", Label: "Aturan", Href: "/aturan"},
+	}
 }
 
 func (h *Handlers) Beranda(w http.ResponseWriter, r *http.Request) {
@@ -293,6 +311,100 @@ func (h *Handlers) mediaBoleh(ctx context.Context, m db.Medium) bool {
 		return h.auth.UserID(ctx) == m.PemilikUserID.Int64
 	}
 	return false
+}
+
+func (h *Handlers) Aturan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	q := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
+	semua, _ := h.konten.Q.ListAturan(ctx)
+	if q == "" {
+		pages.Aturan(semua, q, h.nav(r), "aturan").Render(ctx, w)
+		return
+	}
+	var hasil []db.AturanPasal
+	for _, p := range semua {
+		if strings.Contains(strings.ToLower(p.Judul+" "+p.IsiMd), q) {
+			hasil = append(hasil, p)
+		}
+	}
+	pages.Aturan(hasil, q, h.nav(r), "aturan").Render(ctx, w)
+}
+
+func (h *Handlers) Pengurus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	daftar, _ := h.konten.Q.ListPengurus(ctx)
+	pages.Pengurus(daftar, h.nav(r), "pengurus").Render(ctx, w)
+}
+
+func (h *Handlers) Rumahku(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rumah, err := h.konten.Q.RumahUser(ctx, h.auth.UserID(ctx))
+	if err == sql.ErrNoRows {
+		pages.Rumahku(db.RumahUserRow{}, false, nil, h.nav(r), "rumahku").Render(ctx, w)
+		return
+	}
+	iuran, _ := h.konten.Q.IuranRumah(ctx, rumah.ID)
+	pages.Rumahku(rumah, true, iuran, h.nav(r), "rumahku").Render(ctx, w)
+}
+
+func (h *Handlers) Kegiatan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	albums, _ := h.konten.Q.ListAlbum(ctx)
+	pages.Kegiatan(albums, h.nav(r), "kegiatan").Render(ctx, w)
+}
+
+func (h *Handlers) AlbumDetail(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	a, err := h.konten.Q.AlbumBySlug(ctx, chi.URLParam(r, "slug"))
+	if err == sql.ErrNoRows {
+		http.NotFound(w, r)
+		return
+	}
+	foto, _ := h.konten.Q.FotoAlbum(ctx, a.ID)
+	pages.AlbumDetail(a, foto, h.nav(r), "kegiatan").Render(ctx, w)
+}
+
+func (h *Handlers) PostingPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	pages.Posting(nosurf.Token(r), time.Now().Format("2006-01-02"), h.nav(r), "posting").Render(ctx, w)
+}
+
+func (h *Handlers) PostingSubmit(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if err := r.ParseMultipartForm(40 << 20); err != nil {
+		http.Error(w, "gagal membaca formulir", http.StatusBadRequest)
+		return
+	}
+	files := r.MultipartForm.File["foto"]
+	if len(files) == 0 {
+		http.Error(w, "pilih minimal satu foto", http.StatusBadRequest)
+		return
+	}
+	var mediaIDs []int64
+	for _, fh := range files {
+		f, err := fh.Open()
+		if err != nil {
+			http.Error(w, "gagal membaca foto", http.StatusBadRequest)
+			return
+		}
+		data, err := io.ReadAll(f)
+		f.Close()
+		if err != nil {
+			http.Error(w, "gagal membaca foto", http.StatusBadRequest)
+			return
+		}
+		id, err := h.media.Upload(ctx, data, "publik", h.auth.UserID(ctx))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		mediaIDs = append(mediaIDs, id)
+	}
+	if _, err := h.konten.BuatAlbum(ctx, h.auth.UserID(ctx), r.FormValue("judul"), r.FormValue("tanggal"), r.FormValue("cerita"), mediaIDs); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/kegiatan", http.StatusSeeOther)
 }
 
 func periodeOrNow(r *http.Request) string {

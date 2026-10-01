@@ -1,0 +1,49 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
+)
+
+templ Kegiatan(albums []db.ListAlbumRow, nav []components.NavItem, active string) {
+	@components.Layout("Kegiatan · RT 06 / RW 28 Sakura", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Kegiatan warga</h1><p class="muted">Album foto kegiatan RT 06. Ketuk untuk melihat.</p></div>
+			if len(albums) == 0 {
+				<div class="empty">Belum ada album kegiatan.</div>
+			} else {
+				<div class="albums">
+					for _, a := range albums {
+						<a class="album" href={ templ.URL("/kegiatan/" + a.Slug) }>
+							<div class="cov">
+								if a.SampulMediaID.Valid {
+									<img src={ "/m/" + strconv.FormatInt(a.SampulMediaID.Int64, 10) + "/thumb" } alt=""/>
+								}
+							</div>
+							<div><b>{ a.Judul }</b><div class="small faint">{ format.TglID(a.Tanggal) }</div></div>
+						</a>
+					}
+				</div>
+			}
+		</div>
+	}
+}
+
+templ AlbumDetail(a db.AlbumBySlugRow, foto []db.FotoAlbumRow, nav []components.NavItem, active string) {
+	@components.Layout(a.Judul + " · Kegiatan", nav, active) {
+		<div class="stack">
+			<div><a class="btn sm ghost" href="/kegiatan">Semua album</a></div>
+			<div><h1 style="font-size:28px">{ a.Judul }</h1><p class="muted">{ format.TglID(a.Tanggal) }. { a.Cerita.String }</p></div>
+			<div class="photos">
+				for _, f := range foto {
+					<a href={ templ.URL("/m/" + strconv.FormatInt(f.MediaID, 10) + "/full") }>
+						<img src={ "/m/" + strconv.FormatInt(f.MediaID, 10) + "/thumb" } alt={ f.Keterangan.String }/>
+					</a>
+				}
+			</div>
+		</div>
+	}
+}
