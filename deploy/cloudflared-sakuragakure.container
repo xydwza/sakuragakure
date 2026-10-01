@@ -1,0 +1,18 @@
+[Unit]
+Description=Cloudflare tunnel sakuragakure.my.id
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+Image=docker.io/cloudflare/cloudflared:latest
+ContainerName=cloudflared-sakuragakure
+Network=host
+Exec=tunnel --config /etc/cloudflared/config.yml run
+Volume=/home/xydwza/.cloudflared/9e8ec7ed-d201-4ea7-8e6e-22732410ae72.json:/etc/cloudflared/9e8ec7ed-d201-4ea7-8e6e-22732410ae72.json:ro
+Volume=/home/xydwza/sakuragakure/cloudflared/config.yml:/etc/cloudflared/config.yml:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

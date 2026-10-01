@@ -1,0 +1,10 @@
+# Contoh konfigurasi cloudflared untuk sakuragakure.my.id
+# Salin ke ~/sakuragakure/cloudflared/config.yml di server.
+# credentials-file harus menunjuk ke file JSON tunnel (JANGAN commit file JSON-nya).
+tunnel: 9e8ec7ed-d201-4ea7-8e6e-22732410ae72
+credentials-file: /etc/cloudflared/9e8ec7ed-d201-4ea7-8e6e-22732410ae72.json
+ingress:
+  - hostname: sakuragakure.my.id
+    service: http://127.0.0.1:8081
+  - service: http_status:404
+protocol: quic
