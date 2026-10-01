@@ -47,30 +47,6 @@ templ Pengurus(ketua NodePengurus, daftar []db.ListPengurusRow, nav []components
 				</div>
 				<p class="sm faint" style="margin-top:11px">Ditetapkan di Cikarang, 11 April 2026 (AD/ART halaman 7). Foto pengurus diunggah lewat menu admin.</p>
 			</section>
-			<section class="card">
-				<div class="sec-h"><h2>Tampilan ringkas (seperti di HP)</h2></div>
-				<div class="mtree">
-					<details open>
-						<summary>@Ava(ketua.Nama, ketua.FotoMediaID)<div><div class="xs faint">Ketua RT</div><b>{ ketua.Nama }</b></div><span class="chev">&#9662;</span></summary>
-						<div class="body">
-							for _, n := range IntiPengurus(ketua) {
-								<div class="mrow">@Ava(n.Nama, n.FotoMediaID)<div><div class="xs faint">{ n.Jabatan }</div><b class="sm">{ n.Nama }</b></div></div>
-							}
-						</div>
-					</details>
-					for _, k := range KoordinatorPengurus(ketua) {
-						<details>
-							<summary><b>Gang { strconv.Itoa(k.Gang) }</b><span class="chev">&#9662;</span></summary>
-							<div class="body">
-								<div class="mrow">@Ava(k.Nama, k.FotoMediaID)<div><div class="xs faint">Koordinator</div><b class="sm">{ k.Nama }</b></div></div>
-								for _, m := range k.Anak {
-									<div class="mrow">@Ava(m.Nama, m.FotoMediaID)<div><div class="xs faint">Pembantu koordinator</div><b class="sm">{ m.Nama }</b></div></div>
-								}
-							</div>
-						</details>
-					}
-				</div>
-			</section>
 		</div>
 	}
 }
