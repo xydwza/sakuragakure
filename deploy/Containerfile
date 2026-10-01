@@ -1,0 +1,17 @@
+FROM docker.io/library/golang:1.23-alpine AS build
+WORKDIR /src
+RUN go install github.com/a-h/templ/cmd/templ@latest
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN templ generate && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/sakuragakure ./cmd/sakuragakure
+
+FROM docker.io/library/alpine:3.20
+RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 app && mkdir -p /data && chown app /data
+ENV TZ=Asia/Jakarta
+COPY --from=build /out/sakuragakure /app/sakuragakure
+COPY seed /seed
+USER app
+EXPOSE 8080
+ENTRYPOINT ["/app/sakuragakure"]
+CMD ["serve"]

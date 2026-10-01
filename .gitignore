@@ -1,0 +1,6 @@
+# bin/
+/data/
+/deploy/.env
+*.db
+*.db-wal
+*.db-shm
