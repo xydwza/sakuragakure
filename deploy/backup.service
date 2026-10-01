@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup harian SakuraGakure
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/podman exec sakuragakure /app/sakuragakure backup

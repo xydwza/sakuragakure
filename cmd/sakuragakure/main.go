@@ -14,6 +14,7 @@ import (
 	"github.com/justinas/nosurf"
 
 	"sakuragakure/internal/auth"
+	"sakuragakure/internal/backup"
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/rumah"
@@ -36,6 +37,8 @@ func main() {
 		createadmin(os.Args[2:])
 	case "tagihan":
 		tagihan(os.Args[2:])
+	case "backup":
+		backupCmd(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "perintah tidak dikenal: %s\n", os.Args[1])
 		usage()
@@ -76,6 +79,7 @@ func serve(args []string) {
 		w.Write([]byte("ok"))
 	})
 	r.Handle("/static/*", web.StaticHandler())
+	r.Get("/sw.js", web.ServiceWorkerHandler())
 	h := web.NewHandlers(conn, a, envOr("MEDIA_DIR", "data/media"))
 	r.Get("/", h.Beranda)
 	r.Get("/kas", h.Kas)
@@ -176,6 +180,25 @@ func tagihan(args []string) {
 		log.Fatalf("gagal buat tagihan: %v", err)
 	}
 	log.Printf("tagihan %s: %d dibuat", *periode, n)
+}
+
+func backupCmd(args []string) {
+	fs := flag.NewFlagSet("backup", flag.ExitOnError)
+	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
+	dir := fs.String("dir", envOr("BACKUP_DIR", "data/backup"), "direktori cadangan")
+	simpan := fs.Int("simpan", 14, "jumlah hari cadangan disimpan")
+	fs.Parse(args)
+
+	conn, err := db.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("gagal buka database: %v", err)
+	}
+	defer conn.Close()
+	target, err := backup.Jalankan(conn, *dir, *simpan)
+	if err != nil {
+		log.Fatalf("backup gagal: %v", err)
+	}
+	log.Printf("backup tersimpan di %s", target)
 }
 
 func migrate(args []string) {

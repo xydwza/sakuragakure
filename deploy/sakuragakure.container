@@ -1,0 +1,20 @@
+[Unit]
+Description=SakuraGakure portal warga
+After=cloudflared-sakuragakure.service
+
+[Container]
+Image=localhost/sakuragakure:latest
+ContainerName=sakuragakure
+PublishPort=127.0.0.1:8081:8080
+Volume=/data/sakuragakure/db:/data/db:Z
+Volume=/data/sakuragakure/media:/data/media:Z
+Volume=/data/sakuragakure/backup:/data/backup:Z
+EnvironmentFile=/devzone/sakuragakure/deploy/.env
+UserNS=keep-id:uid=10001,gid=10001
+HealthCmd=wget -qO- http://127.0.0.1:8080/healthz || exit 1
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

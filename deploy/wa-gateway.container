@@ -1,0 +1,13 @@
+[Container]
+Image=docker.io/aldinokemal2104/go-whatsapp-web-multidevice:latest
+ContainerName=wa-gateway
+PublishPort=127.0.0.1:3000:3000
+Volume=/data/sakuragakure/wa:/app/storages:Z
+EnvironmentFile=/devzone/sakuragakure/deploy/.env
+Exec=rest
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

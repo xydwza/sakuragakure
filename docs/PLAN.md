@@ -141,3 +141,20 @@ File:
 - nav publik + warga + sekretaris
 
 Kriteria selesai: aturan bisa dicari; struktur pengurus dari peran; rumahku menampilkan status iuran; posting kegiatan membuat album + foto; `make test` hijau.
+
+Selesai.
+
+## Fase 1j — PWA + backup terjadwal + quadlet + Caddyfile
+
+Tujuan: siap deploy — PWA dasar, backup `VACUUM INTO`, Quadlet rootless, dan env.
+
+File:
+- `internal/web/static/manifest.webmanifest`, `sw.js`, `icons/icon-*.png` (generator `cmd/genicon`)
+- `internal/web/static.go` — serve `/sw.js` di root + manifest di static
+- `internal/backup/backup.go` — `VACUUM INTO` + prune 14 hari; subcommand `backup`
+- `deploy/sakuragakure.container`, `deploy/wa-gateway.container`, `deploy/env.example`, `deploy/backup.{sh,service,timer}`
+- `internal/web/components/layout.templ` — link manifest + meta theme-color; `app.js` register sw
+
+Catatan: Caddy tidak dipakai (Cloudflare Tunnel menggantikannya, lihat DECISIONS). `deploy/` hanya Quadlet + env + backup; expose lewat `cloudflared-sakuragakure.container` yang sudah ada.
+
+Kriteria selesai: manifest + sw tersaji; `backup` membuat file & prune; `make test` hijau.

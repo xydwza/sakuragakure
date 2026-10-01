@@ -14,4 +14,7 @@
       try { localStorage.setItem('rt-theme', r.dataset.theme); } catch (e) {}
     });
   }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
 })();

@@ -29,20 +29,20 @@ func Layout(title string, nav []NavItem, active string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"id\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><meta name=\"theme-color\" content=\"#16302A\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 9, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 10, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/app.js\" defer></script></head><body><header class=\"top\"><div class=\"top-in\"><div class=\"brand\"><svg class=\"mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><g transform=\"translate(20 20)\"><g fill=\"var(--sakura)\"><ellipse rx=\"6\" ry=\"10\" cy=\"-9\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"var(--ink)\"></circle></g></svg><div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div></div><button class=\"iconbtn\" id=\"theme\" aria-label=\"Ganti tema terang/gelap\" type=\"button\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z\"></path></svg></button></div></header><div class=\"layout\"><nav class=\"rail\" aria-label=\"Menu\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"manifest\" href=\"/static/manifest.webmanifest\"><link rel=\"apple-touch-icon\" href=\"/static/icons/icon-192.png\"><link rel=\"stylesheet\" href=\"/static/app.css\"><script src=\"/static/app.js\" defer></script></head><body><header class=\"top\"><div class=\"top-in\"><div class=\"brand\"><svg class=\"mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><g transform=\"translate(20 20)\"><g fill=\"var(--sakura)\"><ellipse rx=\"6\" ry=\"10\" cy=\"-9\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10\" cy=\"-9\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"var(--ink)\"></circle></g></svg><div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div></div><button class=\"iconbtn\" id=\"theme\" aria-label=\"Ganti tema terang/gelap\" type=\"button\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z\"></path></svg></button></div></header><div class=\"layout\"><nav class=\"rail\" aria-label=\"Menu\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -81,7 +81,7 @@ func Layout(title string, nav []NavItem, active string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 41, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 44, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +139,7 @@ func Layout(title string, nav []NavItem, active string) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(it.Label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 54, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/web/components/layout.templ`, Line: 57, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {

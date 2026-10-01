@@ -6,7 +6,10 @@ templ Layout(title string, nav []NavItem, active string) {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+			<meta name="theme-color" content="#16302A"/>
 			<title>{ title }</title>
+			<link rel="manifest" href="/static/manifest.webmanifest"/>
+			<link rel="apple-touch-icon" href="/static/icons/icon-192.png"/>
 			<link rel="stylesheet" href="/static/app.css"/>
 			<script src="/static/app.js" defer></script>
 		</head>
