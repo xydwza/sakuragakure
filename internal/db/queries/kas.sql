@@ -16,6 +16,14 @@ JOIN pos_dana p ON p.id = m.pos_id
 ORDER BY m.tanggal DESC, m.id DESC
 LIMIT ?;
 
+-- name: MutasiSemua :many
+SELECT m.id, m.tanggal, m.arah, m.nominal, m.kategori, m.keterangan, m.keterangan_publik,
+       p.nama AS pos_nama, m.nota_media_id
+FROM mutasi m
+JOIN pos_dana p ON p.id = m.pos_id
+ORDER BY m.tanggal DESC, m.id DESC
+LIMIT ?;
+
 -- name: WajibIuranPerGang :many
 SELECT gang, COUNT(*) AS total
 FROM rumah
@@ -54,3 +62,6 @@ SELECT CAST(COALESCE(SUM(t.nominal), 0) AS INTEGER) AS total
 FROM pembayaran p
 JOIN tagihan t ON t.id = p.tagihan_id
 WHERE p.status IN ('dipegang','disetor','menunggu_verifikasi');
+
+-- name: PosDanaList :many
+SELECT id, nama, publik FROM pos_dana ORDER BY id;

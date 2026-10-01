@@ -76,9 +76,10 @@ func serve(args []string) {
 		w.Write([]byte("ok"))
 	})
 	r.Handle("/static/*", web.StaticHandler())
-	h := web.NewHandlers(conn, a)
+	h := web.NewHandlers(conn, a, envOr("MEDIA_DIR", "data/media"))
 	r.Get("/", h.Beranda)
 	r.Get("/kas", h.Kas)
+	r.Get("/m/{id}/{kind}", h.MediaServe)
 
 	// koordinator
 	r.Group(func(r chi.Router) {
@@ -94,6 +95,9 @@ func serve(args []string) {
 		r.Get("/kelola/setoran", h.KelolaSetoran)
 		r.Post("/kelola/setoran/terima", h.TerimaSetoran)
 		r.Post("/kelola/setoran/tolak", h.TolakSetoran)
+		r.Get("/kelola/mutasi", h.MutasiPage)
+		r.Get("/kelola/mutasi/baru", h.MutasiBaruPage)
+		r.Post("/kelola/mutasi/baru", h.MutasiBaruSubmit)
 	})
 
 	r.Get("/masuk", a.LoginPage)

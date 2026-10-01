@@ -1,0 +1,43 @@
+package pages
+
+import (
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/web/components"
+)
+
+var kategoriList = []string{"Fasilitas", "Kebersihan", "Kegiatan", "Kesehatan", "Administrasi", "Dana sosial"}
+
+templ MutasiBaru(pos []db.PosDana, today, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Catat pengeluaran · Kelola", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Catat pengeluaran</h1><p class="muted">Foto nota diambil langsung dari kamera. Saldo pos akan berkurang setelah tersimpan.</p></div>
+			<section class="card">
+				<form class="form" method="post" action="/kelola/mutasi/baru" enctype="multipart/form-data">
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<label class="field">Dari pos
+						<select name="pos">
+							for _, p := range pos {
+								<option value={ p.ID }>{ p.Nama }</option>
+							}
+						</select>
+					</label>
+					<label class="field">Untuk apa<input name="keperluan" placeholder="Contoh: Beli lampu jalan" required/></label>
+					<div class="grid2">
+						<label class="field">Nominal<input name="nominal" inputmode="numeric" placeholder="150000" required/></label>
+						<label class="field">Tanggal<input name="tanggal" type="date" value={ today }/></label>
+					</div>
+					<label class="field">Kategori
+						<select name="kategori">
+							for _, k := range kategoriList {
+								<option value={ k }>{ k }</option>
+							}
+						</select>
+					</label>
+					<label class="field">Tampilan publik<input name="keterangan_publik" placeholder="Teks di halaman kas, tanpa nama pribadi"/></label>
+					<label class="field">Foto nota (wajib)<input type="file" name="nota" accept="image/*" capture="environment" required/></label>
+					<div><button class="btn">Simpan pengeluaran</button></div>
+				</form>
+			</section>
+		</div>
+	}
+}

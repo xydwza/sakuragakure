@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const dansosTahun = `-- name: DansosTahun :one
@@ -157,6 +158,60 @@ func (q *Queries) MutasiPublik(ctx context.Context, limit int64) ([]MutasiPublik
 	return items, nil
 }
 
+const mutasiSemua = `-- name: MutasiSemua :many
+SELECT m.id, m.tanggal, m.arah, m.nominal, m.kategori, m.keterangan, m.keterangan_publik,
+       p.nama AS pos_nama, m.nota_media_id
+FROM mutasi m
+JOIN pos_dana p ON p.id = m.pos_id
+ORDER BY m.tanggal DESC, m.id DESC
+LIMIT ?
+`
+
+type MutasiSemuaRow struct {
+	ID               int64
+	Tanggal          string
+	Arah             string
+	Nominal          int64
+	Kategori         string
+	Keterangan       string
+	KeteranganPublik string
+	PosNama          string
+	NotaMediaID      sql.NullInt64
+}
+
+func (q *Queries) MutasiSemua(ctx context.Context, limit int64) ([]MutasiSemuaRow, error) {
+	rows, err := q.db.QueryContext(ctx, mutasiSemua, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MutasiSemuaRow
+	for rows.Next() {
+		var i MutasiSemuaRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Tanggal,
+			&i.Arah,
+			&i.Nominal,
+			&i.Kategori,
+			&i.Keterangan,
+			&i.KeteranganPublik,
+			&i.PosNama,
+			&i.NotaMediaID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const nominalDiKoordinator = `-- name: NominalDiKoordinator :one
 SELECT CAST(COALESCE(SUM(t.nominal), 0) AS INTEGER) AS total
 FROM pembayaran p
@@ -169,6 +224,33 @@ func (q *Queries) NominalDiKoordinator(ctx context.Context) (int64, error) {
 	var total int64
 	err := row.Scan(&total)
 	return total, err
+}
+
+const posDanaList = `-- name: PosDanaList :many
+SELECT id, nama, publik FROM pos_dana ORDER BY id
+`
+
+func (q *Queries) PosDanaList(ctx context.Context) ([]PosDana, error) {
+	rows, err := q.db.QueryContext(ctx, posDanaList)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PosDana
+	for rows.Next() {
+		var i PosDana
+		if err := rows.Scan(&i.ID, &i.Nama, &i.Publik); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const saldoPos = `-- name: SaldoPos :one

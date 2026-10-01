@@ -13,12 +13,13 @@ type Kelopak struct {
 	Total, Diterima, Dipegang int
 }
 
-// Service membaca data kas agregat (publik).
+// Service membaca data kas agregat (publik) dan mencatat mutasi.
 type Service struct {
-	Q *db.Queries
+	Q  *db.Queries
+	DB *sql.DB
 }
 
-func New(conn *sql.DB) *Service { return &Service{Q: db.New(conn)} }
+func New(conn *sql.DB) *Service { return &Service{Q: db.New(conn), DB: conn} }
 
 // KelopakPerGang menggabungkan total wajib iuran per gang dengan status
 // diterima/dipegang untuk satu periode.

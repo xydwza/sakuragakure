@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"database/sql"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/kas"
+	"sakuragakure/internal/media"
 	"sakuragakure/internal/web/components"
 	"sakuragakure/internal/web/format"
 	"sakuragakure/internal/web/pages"
@@ -23,11 +25,12 @@ import (
 type Handlers struct {
 	kas   *kas.Service
 	iuran *iuran.Service
+	media *media.Service
 	auth  *auth.Auth
 }
 
-func NewHandlers(conn *sql.DB, a *auth.Auth) *Handlers {
-	return &Handlers{kas: kas.New(conn), iuran: iuran.New(conn), auth: a}
+func NewHandlers(conn *sql.DB, a *auth.Auth, mediaDir string) *Handlers {
+	return &Handlers{kas: kas.New(conn), iuran: iuran.New(conn), media: media.New(conn, mediaDir), auth: a}
 }
 
 // nav membangun navigasi sesuai peran user yang sedang masuk.
@@ -51,6 +54,7 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 		case "bendahara", "ketua", "wakil", "sekretaris":
 			return []components.NavItem{
 				{Key: "setoran", Label: "Setoran", Href: "/kelola/setoran"},
+				{Key: "mutasi", Label: "Mutasi", Href: "/kelola/mutasi"},
 				{Key: "kas", Label: "Kas RT", Href: "/kas"},
 			}
 		}
@@ -197,6 +201,98 @@ func (h *Handlers) TolakSetoran(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/kelola/setoran", http.StatusSeeOther)
+}
+
+func (h *Handlers) MutasiPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	mutasi, _ := h.kas.Q.MutasiSemua(ctx, 200)
+	pages.Mutasi(mutasi, h.nav(r), "mutasi").Render(ctx, w)
+}
+
+func (h *Handlers) MutasiBaruPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	pos, _ := h.kas.Q.PosDanaList(ctx)
+	pages.MutasiBaru(pos, time.Now().Format("2006-01-02"), nosurf.Token(r), h.nav(r), "mutasi").Render(ctx, w)
+}
+
+func (h *Handlers) MutasiBaruSubmit(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "gagal membaca formulir", http.StatusBadRequest)
+		return
+	}
+	file, _, err := r.FormFile("nota")
+	if err != nil {
+		http.Error(w, "foto nota wajib dilampirkan", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "gagal membaca foto", http.StatusBadRequest)
+		return
+	}
+
+	mediaID, err := h.media.Upload(ctx, data, "warga", h.auth.UserID(ctx))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	nominal, _ := strconv.ParseInt(r.FormValue("nominal"), 10, 64)
+	keperluan := r.FormValue("keperluan")
+	publik := r.FormValue("keterangan_publik")
+	if publik == "" {
+		publik = keperluan
+	}
+	if _, err := h.kas.CatatPengeluaran(ctx, h.auth.UserID(ctx), r.FormValue("pos"), r.FormValue("tanggal"),
+		r.FormValue("kategori"), keperluan, publik, nominal, mediaID); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/kelola/mutasi", http.StatusSeeOther)
+}
+
+func (h *Handlers) MediaServe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	m, err := h.media.Get(ctx, id)
+	if err == sql.ErrNoRows {
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		http.Error(w, "kesalahan internal", http.StatusInternalServerError)
+		return
+	}
+	if !h.mediaBoleh(ctx, m) {
+		if m.Akses == "warga" {
+			http.Redirect(w, r, "/masuk", http.StatusSeeOther)
+			return
+		}
+		http.Error(w, "tidak berhak", http.StatusForbidden)
+		return
+	}
+	path := m.Path
+	if chi.URLParam(r, "kind") == "thumb" && m.ThumbPath.Valid {
+		path = m.ThumbPath.String
+	}
+	w.Header().Set("Content-Type", m.Mime)
+	http.ServeFile(w, r, path)
+}
+
+func (h *Handlers) mediaBoleh(ctx context.Context, m db.Medium) bool {
+	switch m.Akses {
+	case "publik":
+		return true
+	case "warga":
+		return h.auth.UserID(ctx) != 0
+	case "pengurus":
+		return h.auth.PunyaPeran(ctx, "ketua", "wakil", "sekretaris", "bendahara")
+	case "pemilik":
+		return h.auth.UserID(ctx) == m.PemilikUserID.Int64
+	}
+	return false
 }
 
 func periodeOrNow(r *http.Request) string {

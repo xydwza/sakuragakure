@@ -106,3 +106,22 @@ File:
 State machine: `dipegang -> disetor -> diterima`; `disetor -> dipegang` hanya lewat tolak; tap membatalkan hanya saat `dipegang`.
 
 Kriteria selesai: koordinator bisa menandai 40 rumah + setor; bendahara terima → saldo + kelopak berubah; state machine diuji; `make test` hijau.
+
+Selesai.
+
+## Fase 1h — mutasi + pengeluaran bernota + modul media
+
+Tujuan: bendahara mencatat pengeluaran (wajib foto nota) dan media dilayani lewat handler ber-hak akses.
+
+File:
+- `internal/media/media.go` — upload (decode → re-encode JPEG q82 buang EXIF, full 1920 + thumb 480), `Serve` dengan cek akses
+- `internal/media/media_test.go` — upload membuat full + thumb, resize
+- `internal/kas/pengeluaran.go` — `CatatPengeluaran` (mutasi keluar bernota)
+- `internal/db/queries/kas.sql` — `MutasiSemua` (pengurus, dengan nota_media_id); `media.sql` — `MediaByID`
+- `internal/web/pages/mutasi.templ`, `mutasi_baru.templ`
+- `internal/web/handlers.go` — `/kelola/mutasi`, `/kelola/mutasi/baru`, `/m/{id}/{full|thumb}`
+- `cmd/sakuragakure/main.go` — route + `MEDIA_DIR`
+
+Dependensi baru: `github.com/disintegration/imaging`.
+
+Kriteria selesai: pengeluaran tanpa nota gagal (CHECK); nota tersimpan + thumbnail; media akses `warga` tidak bisa diakses tamu; `make test` hijau.
