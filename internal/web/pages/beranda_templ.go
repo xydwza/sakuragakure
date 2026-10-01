@@ -76,7 +76,7 @@ func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, p
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"legend\" style=\"margin-top:10px\"><span><i style=\"background:var(--sakura);border-color:var(--sakura)\"></i>Diterima bendahara</span><span><i style=\"background:var(--sakura-soft);border-color:var(--sakura)\"></i>Sudah ditarik koordinator</span><span><i></i>Belum</span></div></section></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"legend\" style=\"margin-top:10px\"><span><i style=\"background:var(--leaf);border-color:var(--leaf)\"></i>Diterima bendahara</span><span><i style=\"background:var(--clay-soft);border-color:var(--clay)\"></i>Sudah ditarik koordinator</span><span><i></i>Belum</span></div></section></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

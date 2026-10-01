@@ -132,7 +132,7 @@ func TarikContent(gang int, periode string, iuran int64, bloks []BlokRumah, held
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"legend\"><span><i style=\"background:var(--sakura-soft);border-color:var(--sakura)\"></i>Sudah bayar, uang di saya</span><span><i style=\"background:var(--leaf-soft);border-color:var(--leaf)\"></i>Sudah diterima bendahara</span><span><i style=\"border-style:dashed\"></i>Bebas iuran</span><span><i style=\"background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px)\"></i>Kosong</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"legend\"><span><i style=\"background:var(--clay-soft);border-color:var(--clay)\"></i>Sudah bayar, uang di saya</span><span><i style=\"background:var(--leaf-soft);border-color:var(--leaf)\"></i>Sudah diterima bendahara</span><span><i style=\"border-style:dashed\"></i>Bebas iuran</span><span><i style=\"background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px)\"></i>Kosong</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,4 +1,4 @@
-const CACHE = 'sakuragakure-v1';
+const CACHE = 'sakuragakure-v2';
 const ASSETS = ['/', '/kas', '/static/app.css', '/static/app.js', '/static/vendor/htmx.min.js'];
 
 self.addEventListener('install', (e) => {
@@ -11,19 +11,16 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// network-first untuk semua: selalu ambil versi terbaru, fallback ke cache bila offline.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  if (e.request.mode === 'navigate') {
-    e.respondWith(
-      fetch(e.request)
-        .then((resp) => {
-          const copy = resp.clone();
-          caches.open(CACHE).then((c) => c.put('/kas', copy));
-          return resp;
-        })
-        .catch(() => caches.match('/kas'))
-    );
-    return;
-  }
-  e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request)));
+  e.respondWith(
+    fetch(e.request)
+      .then((resp) => {
+        const copy = resp.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        return resp;
+      })
+      .catch(() => caches.match(e.request))
+  );
 });

@@ -405,3 +405,17 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;back
 
 /* foto avatar */
 .ava img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+
+/* --- kompatibilitas kelas tema lama (alias) --- */
+.small{font-size:13px}
+.tiny{font-size:12px}
+.grid2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.grid3{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(min(100%,172px),1fr))}
+.section-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.btn.sm{padding:7px 13px;font-size:13px}
+.pos.main{color:var(--wood-ink);border-color:var(--wood-3);background:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 7px),linear-gradient(160deg,var(--wood-2),var(--wood-3) 70%)}
+.pos.main .small,.pos.main .tiny{color:color-mix(in srgb,var(--wood-ink) 78%,transparent)}
+.petals{display:flex;flex-wrap:wrap;gap:3px}
+.petal{width:12px;height:12px;border-radius:0 70% 0 70%;background:var(--sunk);border:1px solid var(--line);transform:rotate(-14deg)}
+.petal.on{background:linear-gradient(135deg,var(--leaf-2),var(--leaf));border-color:var(--leaf)}
+.petal.held{background:var(--clay-soft);border-color:var(--clay)}

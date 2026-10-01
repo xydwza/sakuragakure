@@ -56,5 +56,5 @@ func Icon(name string) string {
 	if !ok {
 		p = `<circle cx="12" cy="12" r="8"/>`
 	}
-	return `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">` + p + `</svg>`
+	return `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">` + p + `</svg>`
 }

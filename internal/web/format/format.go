@@ -93,10 +93,10 @@ func ChartSVG(rows []db.GrafikKasBulananRow) string {
 		hi := int(float64(r.Masuk) / float64(max) * float64(H-50))
 		ho := int(float64(r.Keluar) / float64(max) * float64(H-50))
 		b.WriteString(`<rect x="` + itoa(x+int(float64(bw)*0.18)) + `" y="` + itoa(H-24-hi) + `" width="` + itoa(int(float64(bw)*0.3)) + `" height="` + itoa(hi) + `" rx="4" fill="var(--leaf)"><title>Masuk ` + FormatRupiah(r.Masuk) + `</title></rect>`)
-		b.WriteString(`<rect x="` + itoa(x+int(float64(bw)*0.52)) + `" y="` + itoa(H-24-ho) + `" width="` + itoa(int(float64(bw)*0.3)) + `" height="` + itoa(ho) + `" rx="4" fill="var(--sakura)"><title>Keluar ` + FormatRupiah(r.Keluar) + `</title></rect>`)
+		b.WriteString(`<rect x="` + itoa(x+int(float64(bw)*0.52)) + `" y="` + itoa(H-24-ho) + `" width="` + itoa(int(float64(bw)*0.3)) + `" height="` + itoa(ho) + `" rx="4" fill="var(--clay)"><title>Keluar ` + FormatRupiah(r.Keluar) + `</title></rect>`)
 		b.WriteString(`<text x="` + itoa(x+bw/2) + `" y="` + itoa(H-6) + `" text-anchor="middle">` + BulanPendek(r.Bulan) + `</text>`)
 	}
-	b.WriteString(`</svg><div class="legend"><span><i style="background:var(--leaf);border-color:var(--leaf)"></i>Pemasukan iuran</span><span><i style="background:var(--sakura);border-color:var(--sakura)"></i>Pengeluaran</span></div></div>`)
+	b.WriteString(`</svg><div class="legend"><span><i style="background:var(--leaf);border-color:var(--leaf)"></i>Pemasukan iuran</span><span><i style="background:var(--clay);border-color:var(--clay)"></i>Pengeluaran</span></div></div>`)
 	return b.String()
 }
 

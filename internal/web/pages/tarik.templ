@@ -23,7 +23,7 @@ templ TarikContent(gang int, periode string, iuran int64, bloks []BlokRumah, hel
 		if locked {
 			<div class="note warn">Bulan ini sudah ditutup buku oleh bendahara. Hanya bisa dilihat.</div>
 		}
-		<div class="legend"><span><i style="background:var(--sakura-soft);border-color:var(--sakura)"></i>Sudah bayar, uang di saya</span><span><i style="background:var(--leaf-soft);border-color:var(--leaf)"></i>Sudah diterima bendahara</span><span><i style="border-style:dashed"></i>Bebas iuran</span><span><i style="background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px)"></i>Kosong</span></div>
+		<div class="legend"><span><i style="background:var(--clay-soft);border-color:var(--clay)"></i>Sudah bayar, uang di saya</span><span><i style="background:var(--leaf-soft);border-color:var(--leaf)"></i>Sudah diterima bendahara</span><span><i style="border-style:dashed"></i>Bebas iuran</span><span><i style="background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px)"></i>Kosong</span></div>
 		for _, b := range bloks {
 			<div class="blok"><h3>Blok { b.Blok }</h3><div class="tiles">
 				for _, r := range b.Rumah {
