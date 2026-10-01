@@ -20,6 +20,7 @@ import (
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/rumah"
 	"sakuragakure/internal/web"
+	"sakuragakure/internal/web/mock"
 )
 
 func main() {
@@ -75,6 +76,15 @@ func serve(args []string) {
 
 	r := chi.NewRouter()
 	r.Use(a.Middleware)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if strings.HasPrefix(req.Host, "mock.") {
+				mock.Handler(w, req)
+				return
+			}
+			next.ServeHTTP(w, req)
+		})
+	})
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
