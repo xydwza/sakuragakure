@@ -28,3 +28,16 @@ Keputusan yang dicatat di DECISIONS.md:
 - Setting tambahan dari §2.1 & §3.1: `nama_rt`, `rukem_mode`, `dansos_per`.
 
 Selesai. Catatan: go mod di-pin ke goose v3.24.0 + modernc.org/sqlite v1.39.0 agar tetap kompatibel Go 1.23 (Containerfile pakai golang:1.23-alpine); versi terbaru menuntut Go 1.26.
+
+## Fase 1c — perintah import --dry-run dan import CSV
+
+Tujuan: membaca `seed/warga_seed.csv` menjadi `rumah` + `penghuni` aktif, dengan laporan dry-run.
+
+File:
+- `internal/rumah/import.go` — baca CSV, validasi/laporan (duplikat KK, catatan validasi, ringkasan per gang), `Impor()` idempotent
+- `cmd/sakuragakure/main.go` — subcommand `import --rumah <csv> --db <path> [--dry-run]`
+- `internal/rumah/import_test.go` — test parse, laporan, impor (tahun_lahir dari umur, perkiraan, gender NULL, "Penghuni G10/14"), idempotensi
+
+Aturan konversi (SPEC §13): tahun_lahir = 2026 - umur (perkiraan=1); umur kosong → NULL (perkiraan=0); gender kosong → NULL; tetap→pemilik, kontrak→kontrak; kosong tanpa penghuni; nama kosong → "Penghuni <alamat>"; mulai = 2026-04-01.
+
+Kriteria selesai: `import --dry-run` mencetak ringkasan per gang/status, baris catatan validasi, duplikasi KK; `import` menulis 120 rumah + penghuni; `make test` hijau.

@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"sakuragakure/internal/db"
+	"sakuragakure/internal/rumah"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 		serve(os.Args[2:])
 	case "migrate":
 		migrate(os.Args[2:])
+	case "import":
+		impor(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "perintah tidak dikenal: %s\n", os.Args[1])
 		usage()
@@ -65,6 +68,45 @@ func migrate(args []string) {
 		log.Fatalf("migrasi gagal: %v", err)
 	}
 	log.Printf("migrasi selesai di %s", *path)
+}
+
+func impor(args []string) {
+	fs := flag.NewFlagSet("import", flag.ExitOnError)
+	path := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
+	csvPath := fs.String("rumah", "seed/warga_seed.csv", "path CSV rumah")
+	dryRun := fs.Bool("dry-run", false, "cetak laporan tanpa menulis ke database")
+	fs.Parse(args)
+
+	f, err := os.Open(*csvPath)
+	if err != nil {
+		log.Fatalf("gagal buka csv: %v", err)
+	}
+	defer f.Close()
+
+	baris, err := rumah.BacaCSV(f)
+	if err != nil {
+		log.Fatalf("gagal baca csv: %v", err)
+	}
+
+	if *dryRun {
+		fmt.Println(rumah.Laporkan(baris))
+		return
+	}
+
+	conn, err := db.Open(*path)
+	if err != nil {
+		log.Fatalf("gagal buka database: %v", err)
+	}
+	defer conn.Close()
+	if err := db.Migrate(conn); err != nil {
+		log.Fatalf("migrasi gagal: %v", err)
+	}
+
+	hasil, err := rumah.Impor(conn, baris)
+	if err != nil {
+		log.Fatalf("impor gagal: %v", err)
+	}
+	log.Printf("impor selesai: %d rumah, %d penghuni, %d dilewati (sudah ada)", hasil.Rumah, hasil.Penghuni, hasil.Dilewati)
 }
 
 func envOr(key, def string) string {
