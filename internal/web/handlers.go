@@ -17,6 +17,7 @@ import (
 	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/kas"
 	"sakuragakure/internal/konten"
+	"sakuragakure/internal/laporan"
 	"sakuragakure/internal/media"
 	"sakuragakure/internal/web/components"
 	"sakuragakure/internal/web/format"
@@ -25,20 +26,22 @@ import (
 
 // Handlers memegang service untuk halaman web.
 type Handlers struct {
-	kas    *kas.Service
-	iuran  *iuran.Service
-	media  *media.Service
-	konten *konten.Service
-	auth   *auth.Auth
+	kas     *kas.Service
+	iuran   *iuran.Service
+	media   *media.Service
+	konten  *konten.Service
+	laporan *laporan.Service
+	auth    *auth.Auth
 }
 
 func NewHandlers(conn *sql.DB, a *auth.Auth, mediaDir string) *Handlers {
 	return &Handlers{
-		kas:    kas.New(conn),
-		iuran:  iuran.New(conn),
-		media:  media.New(conn, mediaDir),
-		konten: konten.New(conn),
-		auth:   a,
+		kas:     kas.New(conn),
+		iuran:   iuran.New(conn),
+		media:   media.New(conn, mediaDir),
+		konten:  konten.New(conn),
+		laporan: laporan.New(conn),
+		auth:    a,
 	}
 }
 
@@ -57,6 +60,11 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 	list, _ := h.auth.PeranList(r.Context())
 	for _, p := range list {
 		switch p.Peran {
+		case "admin":
+			return []components.NavItem{
+				{Key: "kelola", Label: "Kelola", Href: "/admin/user"},
+				{Key: "kas", Label: "Kas RT", Href: "/kas"},
+			}
 		case "koordinator", "pembantu_koordinator":
 			return []components.NavItem{
 				{Key: "tarik", Label: "Tarik iuran", Href: "/gang/" + strconv.Itoa(p.Gang) + "/tarik"},
@@ -65,10 +73,10 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 			}
 		case "bendahara", "ketua", "wakil", "sekretaris":
 			return []components.NavItem{
+				{Key: "kelola", Label: "Kelola", Href: "/kelola"},
 				{Key: "setoran", Label: "Setoran", Href: "/kelola/setoran"},
 				{Key: "mutasi", Label: "Mutasi", Href: "/kelola/mutasi"},
-				{Key: "posting", Label: "Posting", Href: "/kelola/konten/posting"},
-				{Key: "kas", Label: "Kas RT", Href: "/kas"},
+				{Key: "laporan", Label: "Laporan", Href: "/kelola/laporan"},
 			}
 		}
 	}
@@ -409,6 +417,130 @@ func (h *Handlers) PostingSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/kegiatan", http.StatusSeeOther)
+}
+
+func (h *Handlers) KelolaPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var nama string
+	_ = h.auth.DB.QueryRowContext(ctx, `SELECT nama FROM user WHERE id = ?`, h.auth.UserID(ctx)).Scan(&nama)
+	pages.Kelola(nama, h.kartuKelola(ctx), h.nav(r), "kelola").Render(ctx, w)
+}
+
+func (h *Handlers) kartuKelola(ctx context.Context) []pages.ActionCard {
+	list, _ := h.auth.PeranList(ctx)
+	var out []pages.ActionCard
+	seen := map[string]bool{}
+	tambah := func(label, href string) {
+		if !seen[href] {
+			seen[href] = true
+			out = append(out, pages.ActionCard{Label: label, Href: href})
+		}
+	}
+	for _, p := range list {
+		switch p.Peran {
+		case "ketua":
+			tambah("Setoran menunggu", "/kelola/setoran")
+			tambah("Mutasi kas", "/kelola/mutasi")
+			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
+			tambah("Laporan & ekspor", "/kelola/laporan")
+			tambah("Posting kegiatan", "/kelola/konten/posting")
+		case "bendahara", "wakil":
+			tambah("Setoran menunggu", "/kelola/setoran")
+			tambah("Mutasi kas", "/kelola/mutasi")
+			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
+			tambah("Laporan & ekspor", "/kelola/laporan")
+		case "sekretaris":
+			tambah("Posting kegiatan", "/kelola/konten/posting")
+		case "koordinator", "pembantu_koordinator":
+			tambah("Tarik iuran", "/gang/"+strconv.Itoa(p.Gang)+"/tarik")
+			tambah("Setoran", "/gang/"+strconv.Itoa(p.Gang)+"/setor")
+		case "admin":
+			tambah("Kelola user", "/admin/user")
+		}
+	}
+	return out
+}
+
+func (h *Handlers) AdminUserList(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	users, _ := h.konten.Q.ListUser(ctx)
+	pages.AdminUser(users, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminUserEdit(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	u, err := h.konten.Q.UserByID(ctx, id)
+	if err == sql.ErrNoRows {
+		http.NotFound(w, r)
+		return
+	}
+	pages.AdminUserEdit(u, nosurf.Token(r), h.nav(r), "admin").Render(ctx, w)
+}
+
+func (h *Handlers) AdminUserSave(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	err := h.konten.Q.UpdateUser(ctx, db.UpdateUserParams{
+		Nama:   r.FormValue("nama"),
+		NoWa:   auth.NormalisasiWA(r.FormValue("no_wa")),
+		Alamat: nullableStr(r.FormValue("alamat")),
+		Detail: nullableStr(r.FormValue("detail")),
+		ID:     id,
+	})
+	if err != nil {
+		http.Error(w, "gagal menyimpan", http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, "/admin/user", http.StatusSeeOther)
+}
+
+func (h *Handlers) LaporanPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	data, _ := h.laporan.Data(ctx)
+	pages.Laporan(len(data), h.nav(r), "laporan").Render(ctx, w)
+}
+
+func (h *Handlers) LaporanCSV(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	data, _ := h.laporan.Data(ctx)
+	b, _ := laporan.CSV(data)
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", `attachment; filename="laporan-kas.csv"`)
+	w.Write(b)
+}
+
+func (h *Handlers) LaporanXLSX(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	data, _ := h.laporan.Data(ctx)
+	b, err := laporan.XLSX(data)
+	if err != nil {
+		http.Error(w, "gagal membuat xlsx", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", `attachment; filename="laporan-kas.xlsx"`)
+	w.Write(b)
+}
+
+func (h *Handlers) LaporanPDF(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	data, _ := h.laporan.Data(ctx)
+	b, err := laporan.PDF(data)
+	if err != nil {
+		http.Error(w, "gagal membuat pdf", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", `attachment; filename="laporan-kas.pdf"`)
+	w.Write(b)
+}
+
+func nullableStr(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: s, Valid: true}
 }
 
 func periodeOrNow(r *http.Request) string {

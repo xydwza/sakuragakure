@@ -1,0 +1,21 @@
+package pages
+
+import (
+	"sakuragakure/internal/web/components"
+)
+
+templ Kelola(nama string, cards []ActionCard, nav []components.NavItem, active string) {
+	@components.Layout("Kelola · RT 06 / RW 28 Sakura", nav, active) {
+		<div class="stack">
+			<div><p class="small faint">Pengurus</p><h1 style="font-size:28px">Halo, { nama }</h1><p class="muted">Akses dan tugas pengurus RT 06.</p></div>
+			<div class="grid2">
+				for _, c := range cards {
+					<a class="card" style="text-align:left;display:grid;gap:6px" href={ templ.URL(c.Href) }>
+						<h3>{ c.Label }</h3>
+						<p class="small muted" style="margin:0">Buka { c.Label }</p>
+					</a>
+				}
+			</div>
+		</div>
+	}
+}

@@ -250,13 +250,17 @@ type Tagihan struct {
 }
 
 type User struct {
-	ID          int64
-	Nama        string
-	NoWa        string
-	PenghuniID  sql.NullInt64
-	Aktif       int64
-	AktifSampai sql.NullString
-	CreatedAt   string
+	ID           int64
+	Nama         string
+	NoWa         string
+	PenghuniID   sql.NullInt64
+	Aktif        int64
+	AktifSampai  sql.NullString
+	CreatedAt    string
+	PasswordHash sql.NullString
+	Alamat       sql.NullString
+	Detail       sql.NullString
+	FotoMediaID  sql.NullInt64
 }
 
 type UserPeran struct {

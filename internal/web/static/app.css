@@ -190,6 +190,22 @@ mark{background:var(--sakura-soft);color:var(--sakura-ink);border-radius:4px;pad
 .person{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
 .av{width:42px;height:42px;border-radius:999px;display:grid;place-items:center;font-weight:800;background:var(--sakura-soft);color:var(--sakura-ink);flex:none}
 
+/* pengurus (collapsible) */
+.pengurus-list{display:grid;gap:10px}
+.pengurus-card{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface);box-shadow:var(--shadow)}
+.pengurus-card summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.pengurus-card summary::-webkit-details-marker{display:none}
+.pengurus-card summary .grow{flex:1;min-width:0;display:grid;gap:2px}
+.pengurus-card summary .jab{font-size:13px;color:var(--ink-2)}
+.pengurus-card .chev{color:var(--ink-3);transition:transform .15s;font-size:18px}
+.pengurus-card[open] .chev{transform:rotate(180deg)}
+.pengurus-card .foto{width:46px;height:46px;border-radius:999px;object-fit:cover;flex:none;background:var(--sunk)}
+.pengurus-card .foto.dummy{display:grid;place-items:center;color:var(--sakura-ink);background:var(--sakura-soft)}
+.pengurus-card .foto.dummy svg{width:26px;height:26px}
+.pengurus-card .detail{padding:4px 16px 16px;display:grid;gap:10px;border-top:1px solid var(--line)}
+.pengurus-card .detail .baris{display:flex;justify-content:space-between;gap:10px;padding-top:10px}
+
+
 /* chart */
 .chart svg{width:100%;height:auto;display:block}
 .chart text{fill:var(--ink-3);font-size:11px;font-family:var(--font)}

@@ -24,6 +24,12 @@ JOIN pos_dana p ON p.id = m.pos_id
 ORDER BY m.tanggal DESC, m.id DESC
 LIMIT ?;
 
+-- name: MutasiLaporan :many
+SELECT m.tanggal, p.nama AS pos, m.arah, m.nominal, m.kategori, m.keterangan_publik
+FROM mutasi m
+JOIN pos_dana p ON p.id = m.pos_id
+ORDER BY m.tanggal, m.id;
+
 -- name: WajibIuranPerGang :many
 SELECT gang, COUNT(*) AS total
 FROM rumah

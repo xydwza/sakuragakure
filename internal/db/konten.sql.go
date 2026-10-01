@@ -184,7 +184,7 @@ func (q *Queries) ListAturan(ctx context.Context) ([]AturanPasal, error) {
 }
 
 const listPengurus = `-- name: ListPengurus :many
-SELECT u.nama, up.peran, up.gang
+SELECT u.id, u.nama, u.no_wa, u.alamat, u.detail, u.foto_media_id, up.peran, up.gang
 FROM user_peran up
 JOIN user u ON u.id = up.user_id
 WHERE up.peran IN ('ketua','wakil','sekretaris','bendahara','koordinator','pembantu_koordinator')
@@ -192,9 +192,14 @@ ORDER BY up.urutan, u.id
 `
 
 type ListPengurusRow struct {
-	Nama  string
-	Peran string
-	Gang  int64
+	ID          int64
+	Nama        string
+	NoWa        string
+	Alamat      sql.NullString
+	Detail      sql.NullString
+	FotoMediaID sql.NullInt64
+	Peran       string
+	Gang        int64
 }
 
 func (q *Queries) ListPengurus(ctx context.Context) ([]ListPengurusRow, error) {
@@ -206,7 +211,16 @@ func (q *Queries) ListPengurus(ctx context.Context) ([]ListPengurusRow, error) {
 	var items []ListPengurusRow
 	for rows.Next() {
 		var i ListPengurusRow
-		if err := rows.Scan(&i.Nama, &i.Peran, &i.Gang); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nama,
+			&i.NoWa,
+			&i.Alamat,
+			&i.Detail,
+			&i.FotoMediaID,
+			&i.Peran,
+			&i.Gang,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

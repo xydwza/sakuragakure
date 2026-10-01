@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -22,6 +23,32 @@ func PeranLabel(peran string, gang int) string {
 		return "Pembantu koordinator gang " + strconv.Itoa(gang)
 	}
 	return peran
+}
+
+// Sapaan mengembalikan sapaan untuk chat WA.
+func Sapaan(peran string, gang int) string {
+	switch peran {
+	case "ketua":
+		return "Pak RT"
+	case "wakil":
+		return "Pak Wakil RT"
+	case "sekretaris":
+		return "Pak Sekretaris"
+	case "bendahara":
+		return "Pak Bendahara"
+	case "koordinator":
+		return "Pak Koordinator Gang " + strconv.Itoa(gang)
+	case "pembantu_koordinator":
+		return "Pak Koordinator Gang " + strconv.Itoa(gang)
+	}
+	return "Pengurus"
+}
+
+// WaChatLink membuat tautan wa.me dengan pesan siap kirim.
+func WaChatLink(noWA, sapaan string) string {
+	digit := strings.TrimPrefix(strings.TrimSpace(noWA), "+")
+	pesan := "Halo " + sapaan + ", saya warga RT 06 / RW 28 Sakura."
+	return "https://wa.me/" + digit + "?text=" + url.QueryEscape(pesan)
 }
 
 // AvatarInitials mengambil inisial nama (maks 2 kata).

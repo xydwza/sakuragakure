@@ -2,7 +2,7 @@
 SELECT id, bab, judul, isi_md, urutan FROM aturan_pasal ORDER BY urutan;
 
 -- name: ListPengurus :many
-SELECT u.nama, up.peran, up.gang
+SELECT u.id, u.nama, u.no_wa, u.alamat, u.detail, u.foto_media_id, up.peran, up.gang
 FROM user_peran up
 JOIN user u ON u.id = up.user_id
 WHERE up.peran IN ('ketua','wakil','sekretaris','bendahara','koordinator','pembantu_koordinator')

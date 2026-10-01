@@ -1,0 +1,45 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/db"
+	"sakuragakure/internal/web/components"
+)
+
+templ AdminUser(users []db.ListUserRow, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Kelola user · Admin", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Kelola user</h1><p class="muted">Ubah nama, nomor WhatsApp, alamat, dan detail pengurus.</p></div>
+			<section class="card"><div class="list">
+				for _, u := range users {
+					<div class="li">
+						<div class="grow"><b>{ u.Nama }</b><div class="tiny faint">{ u.NoWa } · { u.Peran }</div></div>
+						if u.Aktif == 0 {
+							<span class="pill bad">nonaktif</span>
+						}
+						<a class="btn sm ghost" href={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10)) }>Ubah</a>
+					</div>
+				}
+			</div></section>
+		</div>
+	}
+}
+
+templ AdminUserEdit(u db.UserByIDRow, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Ubah user · Admin", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Ubah user</h1></div>
+			<section class="card">
+				<form class="form" method="post" action={ templ.URL("/admin/user/" + strconv.FormatInt(u.ID, 10)) }>
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<label class="field">Nama<input name="nama" value={ u.Nama } required/></label>
+					<label class="field">Nomor WhatsApp<input name="no_wa" value={ u.NoWa } inputmode="tel"/></label>
+					<label class="field">Alamat<input name="alamat" value={ u.Alamat.String } placeholder="G11/19"/></label>
+					<label class="field">Detail<textarea name="detail" placeholder="Tugas, masa jabatan, dll.">{ u.Detail.String }</textarea></label>
+					<div><button class="btn">Simpan</button> <a class="btn ghost" href="/admin/user">Batal</a></div>
+				</form>
+			</section>
+		</div>
+	}
+}

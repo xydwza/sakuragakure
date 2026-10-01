@@ -109,6 +109,52 @@ func (q *Queries) KelopakGang(ctx context.Context, periode string) ([]KelopakGan
 	return items, nil
 }
 
+const mutasiLaporan = `-- name: MutasiLaporan :many
+SELECT m.tanggal, p.nama AS pos, m.arah, m.nominal, m.kategori, m.keterangan_publik
+FROM mutasi m
+JOIN pos_dana p ON p.id = m.pos_id
+ORDER BY m.tanggal, m.id
+`
+
+type MutasiLaporanRow struct {
+	Tanggal          string
+	Pos              string
+	Arah             string
+	Nominal          int64
+	Kategori         string
+	KeteranganPublik string
+}
+
+func (q *Queries) MutasiLaporan(ctx context.Context) ([]MutasiLaporanRow, error) {
+	rows, err := q.db.QueryContext(ctx, mutasiLaporan)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MutasiLaporanRow
+	for rows.Next() {
+		var i MutasiLaporanRow
+		if err := rows.Scan(
+			&i.Tanggal,
+			&i.Pos,
+			&i.Arah,
+			&i.Nominal,
+			&i.Kategori,
+			&i.KeteranganPublik,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const mutasiPublik = `-- name: MutasiPublik :many
 SELECT m.id, m.tanggal, m.arah, m.nominal, m.kategori, m.keterangan_publik, p.nama AS pos_nama
 FROM mutasi m

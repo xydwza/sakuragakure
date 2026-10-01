@@ -18,7 +18,7 @@ func BuatUser(db *sql.DB, nama, noWA, peran, password string, gang int) (int64, 
 	defer tx.Rollback()
 
 	res, err := tx.Exec(`INSERT INTO user (nama, no_wa, aktif, password_hash, created_at) VALUES (?, ?, 1, ?, ?)`,
-		nama, normalisasiWA(noWA), hash, now().Format(time.RFC3339))
+		nama, NormalisasiWA(noWA), hash, now().Format(time.RFC3339))
 	if err != nil {
 		return 0, err
 	}

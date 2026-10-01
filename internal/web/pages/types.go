@@ -2,6 +2,11 @@ package pages
 
 import "sakuragakure/internal/db"
 
+// ActionCard adalah satu kartu aksi di dasbor kelola.
+type ActionCard struct {
+	Label, Href string
+}
+
 // BlokRumah adalah sekelompok rumah dalam satu blok untuk grid tarik iuran.
 type BlokRumah struct {
 	Blok  string

@@ -1,6 +1,8 @@
 package pages
 
 import (
+	"strconv"
+
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/web/components"
 )
@@ -8,16 +10,34 @@ import (
 templ Pengurus(daftar []db.ListPengurusRow, nav []components.NavItem, active string) {
 	@components.Layout("Pengurus · RT 06 / RW 28 Sakura", nav, active) {
 		<div class="stack">
-			<div><h1 style="font-size:28px">Pengurus RT 06</h1><p class="muted">Struktur dibuat otomatis dari peran akun. Ganti pengurus cukup ubah peran, tanpa edit gambar.</p></div>
+			<div><h1 style="font-size:28px">Pengurus RT 06</h1><p class="muted">Ketuk nama untuk melihat detail dan menghubungi lewat WhatsApp.</p></div>
 			if len(daftar) == 0 {
 				<div class="empty">Belum ada pengurus terdaftar.</div>
 			} else {
-				<div class="people">
+				<div class="pengurus-list">
 					for _, x := range daftar {
-						<div class="person">
-							<div class="av">{ AvatarInitials(x.Nama) }</div>
-							<div><b>{ x.Nama }</b><div class="small muted">{ PeranLabel(x.Peran, int(x.Gang)) }</div></div>
-						</div>
+						<details class="pengurus-card">
+							<summary>
+								if x.FotoMediaID.Valid {
+									<img class="foto" src={ "/m/" + strconv.FormatInt(x.FotoMediaID.Int64, 10) + "/thumb" } alt={ x.Nama }/>
+								} else {
+									<span class="foto dummy" aria-hidden="true">
+										<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+									</span>
+								}
+								<span class="grow"><b>{ x.Nama }</b><span class="jab">{ PeranLabel(x.Peran, int(x.Gang)) }</span></span>
+								<span class="chev" aria-hidden="true">⌄</span>
+							</summary>
+							<div class="detail">
+								if x.Alamat.Valid && x.Alamat.String != "" {
+									<div class="baris"><span class="muted">Alamat</span><b>{ x.Alamat.String }</b></div>
+								}
+								if x.Detail.Valid && x.Detail.String != "" {
+									<p class="small muted">{ x.Detail.String }</p>
+								}
+								<a class="btn leaf sm" href={ templ.URL(WaChatLink(x.NoWa, Sapaan(x.Peran, int(x.Gang)))) } target="_blank" rel="noopener">Chat WhatsApp</a>
+							</div>
+						</details>
 					}
 				</div>
 			}

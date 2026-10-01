@@ -26,7 +26,7 @@ func (a *Auth) LoginPage(w http.ResponseWriter, r *http.Request) {
 
 // Login memverifikasi kata sandi dan menerbitkan token JWT.
 func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
-	noWA := normalisasiWA(r.FormValue("no_wa"))
+	noWA := NormalisasiWA(r.FormValue("no_wa"))
 	pw := r.FormValue("password")
 
 	var id int64
@@ -48,7 +48,23 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: cookieSecure(),
 		MaxAge: int(sesiTTL.Seconds()),
 	})
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, a.tujuanLogin(id), http.StatusSeeOther)
+}
+
+// tujuanLogin mengarahkan user sesuai perannya setelah masuk.
+func (a *Auth) tujuanLogin(userID int64) string {
+	var peran string
+	if err := a.DB.QueryRow(`SELECT peran FROM user_peran WHERE user_id = ? ORDER BY urutan LIMIT 1`, userID).Scan(&peran); err != nil {
+		return "/"
+	}
+	switch peran {
+	case "admin":
+		return "/admin/user"
+	case "warga":
+		return "/"
+	default:
+		return "/kelola"
+	}
 }
 
 // Logout menghapus cookie token.
@@ -57,7 +73,7 @@ func (a *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/masuk", http.StatusSeeOther)
 }
 
-func normalisasiWA(s string) string {
+func NormalisasiWA(s string) string {
 	s = strings.TrimSpace(s)
 	s = strings.NewReplacer(" ", "", "-", "").Replace(s)
 	if strings.HasPrefix(s, "0") {

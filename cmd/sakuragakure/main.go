@@ -119,6 +119,22 @@ func serve(args []string) {
 		r.Get("/kelola/konten/posting", h.PostingPage)
 		r.Post("/kelola/konten/posting", h.PostingSubmit)
 	})
+	// dasbor kelola + laporan (semua pengurus)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("ketua", "wakil", "sekretaris", "bendahara", "koordinator", "pembantu_koordinator"))
+		r.Get("/kelola", h.KelolaPage)
+		r.Get("/kelola/laporan", h.LaporanPage)
+		r.Get("/kelola/laporan/kas.csv", h.LaporanCSV)
+		r.Get("/kelola/laporan/kas.xlsx", h.LaporanXLSX)
+		r.Get("/kelola/laporan/kas.pdf", h.LaporanPDF)
+	})
+	// admin (teknis)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("admin"))
+		r.Get("/admin/user", h.AdminUserList)
+		r.Get("/admin/user/{id}", h.AdminUserEdit)
+		r.Post("/admin/user/{id}", h.AdminUserSave)
+	})
 
 	r.Get("/masuk", a.LoginPage)
 	r.Post("/masuk", a.Login)

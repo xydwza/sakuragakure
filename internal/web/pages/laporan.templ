@@ -1,0 +1,20 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/web/components"
+)
+
+templ Laporan(jumlahMutasi int, nav []components.NavItem, active string) {
+	@components.Layout("Laporan kas · Kelola", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Laporan kas</h1><p class="muted">{ strconv.Itoa(jumlahMutasi) } mutasi tercatat. Unduh untuk dibuka di Google Sheets, Excel (dengan formula), atau PDF.</p></div>
+			<div class="grid2">
+				<a class="card" style="display:grid;gap:6px" href="/kelola/laporan/kas.csv"><h3>CSV</h3><p class="small muted">Impor langsung ke Google Sheets / Excel.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/kelola/laporan/kas.xlsx"><h3>Excel (.xlsx)</h3><p class="small muted">Total SUM + saldo berjalan dengan formula.</p></a>
+				<a class="card" style="display:grid;gap:6px" href="/kelola/laporan/kas.pdf"><h3>PDF</h3><p class="small muted">Laporan siap cetak / dibagikan.</p></a>
+			</div>
+		</div>
+	}
+}
