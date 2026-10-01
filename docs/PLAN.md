@@ -63,3 +63,24 @@ Dependensi baru: `github.com/alexedwards/scs/v2`, `github.com/justinas/nosurf` (
 Kriteria selesai: OTP & kode cadangan terverifikasi (benar/salah/kedaluwarsa/percobaan habis); middleware tamu→redirect /masuk, peran salah→403; `createadmin` membuat user admin; `make test` hijau.
 
 Catatan: antrian `notif_outbox` sudah ditulis di fase ini, worker pengirim WA-nya di fase 1j (gateway mati → kode tetap dibuat, login pakai kode cadangan).
+
+Selesai.
+
+## Fase 1e — layout, design token, font self-host, komponen dasar
+
+Tujuan: pondasi visual dari mockup — token warna/radius/font, shell (top bar + bottom nav + rail), komponen dasar, htmx + font di-vendor.
+
+File:
+- `internal/web/static/app.css` — token + base + komponen (salin mockup `<style>` §10-211)
+- `internal/web/static/vendor/htmx.min.js` — htmx 2 (di-vendor)
+- `internal/web/static/fonts/*.woff2` — Plus Jakarta Sans 400/500/600/700/800 + italic 500
+- `internal/web/static/embed.go` — embed static + handler (cache, content-type)
+- `internal/web/components/*.templ` — layout shell, ikon, komponen (btn, pill, card, pos)
+- `internal/web/pages/beranda.templ` — halaman sementara untuk bukti pipeline
+- `cmd/sakuragakure/main.go` — `serve` sajikan static + route `/` sementara
+
+Dependensi/tool baru: `github.com/a-h/templ` (tool generate, di-pin di Containerfile).
+
+Kriteria selesai: `make generate` + `make build` jalan; `/` merender shell dengan token sakura; font & htmx dilayani lokal tanpa CDN; `make test` hijau.
+
+Catatan: navigasi per peran + pengalih peran diisi fase 1f (butuh halaman beranda/kas).

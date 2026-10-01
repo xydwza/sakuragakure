@@ -1,0 +1,46 @@
+package components
+
+templ Layout(title string) {
+	<!doctype html>
+	<html lang="id">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/app.css"/>
+			<script src="/static/app.js" defer></script>
+		</head>
+		<body>
+			<header class="top">
+				<div class="top-in">
+					<div class="brand">
+						<svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+							<g transform="translate(20 20)">
+								<g fill="var(--sakura)">
+									<ellipse rx="6" ry="10" cy="-9"/>
+									<ellipse rx="6" ry="10" cy="-9" transform="rotate(72)"/>
+									<ellipse rx="6" ry="10" cy="-9" transform="rotate(144)"/>
+									<ellipse rx="6" ry="10" cy="-9" transform="rotate(216)"/>
+									<ellipse rx="6" ry="10" cy="-9" transform="rotate(288)"/>
+								</g>
+								<circle r="4" fill="var(--ink)"/>
+							</g>
+						</svg>
+						<div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div>
+					</div>
+					<button class="iconbtn" id="theme" aria-label="Ganti tema terang/gelap" type="button">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+					</button>
+				</div>
+			</header>
+			<div class="layout">
+				<nav class="rail" id="rail" aria-label="Menu"></nav>
+				<main id="main" tabindex="-1">
+					{ children... }
+				</main>
+			</div>
+			<nav class="bottomnav" aria-label="Menu"><div class="bottomnav-in" id="bnav"></div></nav>
+			<script src="/static/vendor/htmx.min.js" defer></script>
+		</body>
+	</html>
+}

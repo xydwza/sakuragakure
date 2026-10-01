@@ -3,6 +3,7 @@ module sakuragakure
 go 1.23.0
 
 require (
+	github.com/a-h/templ v0.3.850
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/justinas/nosurf v1.2.0

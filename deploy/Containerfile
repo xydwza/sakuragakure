@@ -1,6 +1,6 @@
 FROM docker.io/library/golang:1.23-alpine AS build
 WORKDIR /src
-RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.850
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .

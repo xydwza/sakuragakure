@@ -14,6 +14,8 @@ import (
 	"sakuragakure/internal/auth"
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/rumah"
+	"sakuragakure/internal/web"
+	"sakuragakure/internal/web/pages"
 )
 
 func main() {
@@ -68,6 +70,10 @@ func serve(args []string) {
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
+	})
+	r.Handle("/static/*", web.StaticHandler())
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		pages.Beranda().Render(r.Context(), w)
 	})
 	r.Get("/masuk", a.LoginPage)
 	r.Post("/masuk/wa", a.MintaOTP)
