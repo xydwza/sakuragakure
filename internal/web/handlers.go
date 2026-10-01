@@ -522,6 +522,10 @@ func (h *Handlers) AdminUserEdit(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) AdminUserSave(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "gagal membaca formulir", http.StatusBadRequest)
+		return
+	}
 	err := h.konten.Q.UpdateUser(ctx, db.UpdateUserParams{
 		Nama:   r.FormValue("nama"),
 		NoWa:   auth.NormalisasiWA(r.FormValue("no_wa")),
@@ -532,6 +536,13 @@ func (h *Handlers) AdminUserSave(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "gagal menyimpan", http.StatusBadRequest)
 		return
+	}
+	if f, _, ferr := r.FormFile("foto"); ferr == nil {
+		data, _ := io.ReadAll(f)
+		f.Close()
+		if mediaID, uerr := h.media.Upload(ctx, data, "publik", 0); uerr == nil {
+			_ = h.konten.Q.UpdateUserFoto(ctx, db.UpdateUserFotoParams{ID: id, FotoMediaID: sql.NullInt64{Int64: mediaID, Valid: true}})
+		}
 	}
 	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "ubah_user", "user", strconv.FormatInt(id, 10), "", ip(r))
 	http.Redirect(w, r, "/admin/user", http.StatusSeeOther)

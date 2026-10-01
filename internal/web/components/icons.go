@@ -2,7 +2,35 @@ package components
 
 // NavItem adalah satu entri navigasi (bawah/rail).
 type NavItem struct {
-	Key, Label, Href string
+	Key, Label, Href, Icon string
+}
+
+// iconAlias memetakan key halaman (nav) ke nama ikon.
+var iconAlias = map[string]string{
+	"beranda":  "home",
+	"kegiatan": "foto",
+	"aturan":   "buku",
+	"pengurus": "orang",
+	"rumahku":  "rumah",
+	"tarik":    "cek",
+	"setor":    "kirim",
+	"setoran":  "kirim",
+	"mutasi":   "daftar",
+	"kelola":   "grafik",
+	"laporan":  "grafik",
+	"posting":  "upload",
+	"admin":    "form",
+}
+
+// IconName mengembalikan nama ikon (fallback ke Key bila kosong).
+func (n NavItem) IconName() string {
+	if n.Icon != "" {
+		return n.Icon
+	}
+	if a, ok := iconAlias[n.Key]; ok {
+		return a
+	}
+	return n.Key
 }
 
 // iconPath berisi path ikon filled (Material-style), bukan outline lingkaran.

@@ -9,3 +9,6 @@ SELECT id, nama, no_wa, alamat, detail, aktif, foto_media_id FROM user WHERE id 
 
 -- name: UpdateUser :exec
 UPDATE user SET nama = ?, no_wa = ?, alamat = ?, detail = ? WHERE id = ?;
+
+-- name: UpdateUserFoto :exec
+UPDATE user SET foto_media_id = ? WHERE id = ?;

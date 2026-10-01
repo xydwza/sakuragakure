@@ -30,7 +30,7 @@ templ Layout(title string, nav []NavItem, active string) {
 				<nav class="rail" aria-label="Menu">
 					for _, it := range nav {
 						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
-							@templ.Raw(Icon(it.Key))
+							@templ.Raw(Icon(it.IconName()))
 							<span>{ it.Label }</span>
 						</a>
 					}
@@ -43,7 +43,7 @@ templ Layout(title string, nav []NavItem, active string) {
 				<div class="bottomnav-in">
 					for _, it := range nav {
 						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
-							@templ.Raw(Icon(it.Key))
+							@templ.Raw(Icon(it.IconName()))
 							<span>{ it.Label }</span>
 						</a>
 					}

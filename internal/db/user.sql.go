@@ -83,6 +83,20 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 	return err
 }
 
+const updateUserFoto = `-- name: UpdateUserFoto :exec
+UPDATE user SET foto_media_id = ? WHERE id = ?
+`
+
+type UpdateUserFotoParams struct {
+	FotoMediaID sql.NullInt64
+	ID          int64
+}
+
+func (q *Queries) UpdateUserFoto(ctx context.Context, arg UpdateUserFotoParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserFoto, arg.FotoMediaID, arg.ID)
+	return err
+}
+
 const userByID = `-- name: UserByID :one
 SELECT id, nama, no_wa, alamat, detail, aktif, foto_media_id FROM user WHERE id = ?
 `
