@@ -62,21 +62,31 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 		switch p.Peran {
 		case "admin":
 			return []components.NavItem{
-				{Key: "kelola", Label: "Kelola", Href: "/admin/user"},
+				{Key: "beranda", Label: "Beranda", Href: "/"},
 				{Key: "kas", Label: "Kas RT", Href: "/kas"},
+				{Key: "kelola", Label: "Kelola user", Href: "/admin/user"},
 			}
 		case "koordinator", "pembantu_koordinator":
 			return []components.NavItem{
+				{Key: "beranda", Label: "Beranda", Href: "/"},
 				{Key: "tarik", Label: "Tarik iuran", Href: "/gang/" + strconv.Itoa(p.Gang) + "/tarik"},
 				{Key: "setor", Label: "Setoran", Href: "/gang/" + strconv.Itoa(p.Gang) + "/setor"},
 				{Key: "kas", Label: "Kas RT", Href: "/kas"},
 			}
-		case "bendahara", "ketua", "wakil", "sekretaris":
+		case "bendahara", "ketua", "wakil":
 			return []components.NavItem{
-				{Key: "kelola", Label: "Kelola", Href: "/kelola"},
+				{Key: "beranda", Label: "Beranda", Href: "/"},
+				{Key: "kas", Label: "Kas RT", Href: "/kas"},
 				{Key: "setoran", Label: "Setoran", Href: "/kelola/setoran"},
 				{Key: "mutasi", Label: "Mutasi", Href: "/kelola/mutasi"},
-				{Key: "laporan", Label: "Laporan", Href: "/kelola/laporan"},
+				{Key: "kelola", Label: "Kelola", Href: "/kelola"},
+			}
+		case "sekretaris":
+			return []components.NavItem{
+				{Key: "beranda", Label: "Beranda", Href: "/"},
+				{Key: "kas", Label: "Kas RT", Href: "/kas"},
+				{Key: "posting", Label: "Posting", Href: "/kelola/konten/posting"},
+				{Key: "kelola", Label: "Kelola", Href: "/kelola"},
 			}
 		}
 	}
@@ -93,7 +103,7 @@ func (h *Handlers) LoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) Beranda(w http.ResponseWriter, r *http.Request) {
-	if strings.HasPrefix(r.Host, "pengurus.") {
+	if strings.HasPrefix(r.Host, "pengurus.") && h.auth.UserID(r.Context()) == 0 {
 		http.Redirect(w, r, "/masuk", http.StatusSeeOther)
 		return
 	}
@@ -214,7 +224,8 @@ func (h *Handlers) SetorSubmit(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) KelolaSetoran(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	pending, _ := h.iuran.Q.SetoranMenunggu(ctx)
-	pages.KelolaSetoran(pending, nosurf.Token(r), h.nav(r), "setoran").Render(ctx, w)
+	bisaTulis := h.auth.PunyaPeran(ctx, "bendahara", "ketua", "wakil")
+	pages.KelolaSetoran(pending, bisaTulis, nosurf.Token(r), h.nav(r), "setoran").Render(ctx, w)
 }
 
 func (h *Handlers) TerimaSetoran(w http.ResponseWriter, r *http.Request) {
@@ -240,7 +251,8 @@ func (h *Handlers) TolakSetoran(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) MutasiPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	mutasi, _ := h.kas.Q.MutasiSemua(ctx, 200)
-	pages.Mutasi(mutasi, h.nav(r), "mutasi").Render(ctx, w)
+	bisaTulis := h.auth.PunyaPeran(ctx, "bendahara", "ketua", "wakil")
+	pages.Mutasi(mutasi, bisaTulis, h.nav(r), "mutasi").Render(ctx, w)
 }
 
 func (h *Handlers) MutasiBaruPage(w http.ResponseWriter, r *http.Request) {
@@ -440,24 +452,27 @@ func (h *Handlers) kartuKelola(ctx context.Context) []pages.ActionCard {
 			out = append(out, pages.ActionCard{Label: label, Href: href})
 		}
 	}
+
+	// baca (transparansi) — semua pengurus bisa lihat
+	if h.auth.PunyaPeran(ctx, "ketua", "wakil", "sekretaris", "bendahara", "koordinator", "pembantu_koordinator") {
+		tambah("Lihat kas RT (grafik & rangkuman)", "/kas")
+		tambah("Laporan & ekspor", "/kelola/laporan")
+		tambah("Mutasi kas", "/kelola/mutasi")
+		tambah("Setoran", "/kelola/setoran")
+	}
+	// tulis — sesuai peran
 	for _, p := range list {
 		switch p.Peran {
-		case "ketua":
-			tambah("Setoran menunggu", "/kelola/setoran")
-			tambah("Mutasi kas", "/kelola/mutasi")
-			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
-			tambah("Laporan & ekspor", "/kelola/laporan")
-			tambah("Posting kegiatan", "/kelola/konten/posting")
 		case "bendahara", "wakil":
-			tambah("Setoran menunggu", "/kelola/setoran")
-			tambah("Mutasi kas", "/kelola/mutasi")
 			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
-			tambah("Laporan & ekspor", "/kelola/laporan")
+		case "ketua":
+			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
+			tambah("Posting kegiatan", "/kelola/konten/posting")
 		case "sekretaris":
 			tambah("Posting kegiatan", "/kelola/konten/posting")
 		case "koordinator", "pembantu_koordinator":
 			tambah("Tarik iuran", "/gang/"+strconv.Itoa(p.Gang)+"/tarik")
-			tambah("Setoran", "/gang/"+strconv.Itoa(p.Gang)+"/setor")
+			tambah("Setoran gang", "/gang/"+strconv.Itoa(p.Gang)+"/setor")
 		case "admin":
 			tambah("Kelola user", "/admin/user")
 		}

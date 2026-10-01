@@ -96,7 +96,7 @@ func serve(args []string) {
 		r.Get("/rumahku", h.Rumahku)
 	})
 
-	// koordinator
+	// koordinator (tulis alur iuran)
 	r.Group(func(r chi.Router) {
 		r.Use(a.RequirePeran("koordinator", "pembantu_koordinator"))
 		r.Get("/gang/{gang}/tarik", h.Tarik)
@@ -104,23 +104,7 @@ func serve(args []string) {
 		r.Get("/gang/{gang}/setor", h.SetorPage)
 		r.Post("/gang/{gang}/setor", h.SetorSubmit)
 	})
-	// bendahara + pengurus
-	r.Group(func(r chi.Router) {
-		r.Use(a.RequirePeran("bendahara", "ketua", "wakil"))
-		r.Get("/kelola/setoran", h.KelolaSetoran)
-		r.Post("/kelola/setoran/terima", h.TerimaSetoran)
-		r.Post("/kelola/setoran/tolak", h.TolakSetoran)
-		r.Get("/kelola/mutasi", h.MutasiPage)
-		r.Get("/kelola/mutasi/baru", h.MutasiBaruPage)
-		r.Post("/kelola/mutasi/baru", h.MutasiBaruSubmit)
-	})
-	// sekretaris + ketua (posting)
-	r.Group(func(r chi.Router) {
-		r.Use(a.RequirePeran("sekretaris", "ketua"))
-		r.Get("/kelola/konten/posting", h.PostingPage)
-		r.Post("/kelola/konten/posting", h.PostingSubmit)
-	})
-	// dasbor kelola + laporan (semua pengurus)
+	// baca laporan & rangkuman (semua pengurus)
 	r.Group(func(r chi.Router) {
 		r.Use(a.RequirePeran("ketua", "wakil", "sekretaris", "bendahara", "koordinator", "pembantu_koordinator"))
 		r.Get("/kelola", h.KelolaPage)
@@ -128,6 +112,22 @@ func serve(args []string) {
 		r.Get("/kelola/laporan/kas.csv", h.LaporanCSV)
 		r.Get("/kelola/laporan/kas.xlsx", h.LaporanXLSX)
 		r.Get("/kelola/laporan/kas.pdf", h.LaporanPDF)
+		r.Get("/kelola/setoran", h.KelolaSetoran)
+		r.Get("/kelola/mutasi", h.MutasiPage)
+	})
+	// tulis keuangan (bendahara/ketua/wakil)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("bendahara", "ketua", "wakil"))
+		r.Post("/kelola/setoran/terima", h.TerimaSetoran)
+		r.Post("/kelola/setoran/tolak", h.TolakSetoran)
+		r.Get("/kelola/mutasi/baru", h.MutasiBaruPage)
+		r.Post("/kelola/mutasi/baru", h.MutasiBaruSubmit)
+	})
+	// tulis konten (sekretaris/ketua)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("sekretaris", "ketua"))
+		r.Get("/kelola/konten/posting", h.PostingPage)
+		r.Post("/kelola/konten/posting", h.PostingSubmit)
 	})
 	// admin (teknis)
 	r.Group(func(r chi.Router) {

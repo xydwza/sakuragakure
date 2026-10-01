@@ -8,10 +8,14 @@ import (
 	"sakuragakure/internal/web/format"
 )
 
-templ Mutasi(mutasi []db.MutasiSemuaRow, nav []components.NavItem, active string) {
+templ Mutasi(mutasi []db.MutasiSemuaRow, bisaTulis bool, nav []components.NavItem, active string) {
 	@components.Layout("Mutasi kas · Kelola", nav, active) {
 		<div class="stack">
-			<div class="between"><div><h1 style="font-size:28px">Mutasi kas</h1><p class="muted">Pengeluaran wajib melampirkan foto nota. Koreksi dicatat sebagai mutasi baru.</p></div><a class="btn" href="/kelola/mutasi/baru">Catat pengeluaran</a></div>
+			<div class="between"><div><h1 style="font-size:28px">Mutasi kas</h1><p class="muted">Pengeluaran wajib melampirkan foto nota. Koreksi dicatat sebagai mutasi baru.</p></div>
+				if bisaTulis {
+					<a class="btn" href="/kelola/mutasi/baru">Catat pengeluaran</a>
+				}
+			</div>
 			<section class="card">
 				if len(mutasi) == 0 {
 					<div class="empty">Belum ada mutasi.</div>
