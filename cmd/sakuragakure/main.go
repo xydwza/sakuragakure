@@ -114,6 +114,9 @@ func serve(args []string) {
 		r.Get("/kelola/laporan/kas.pdf", h.LaporanPDF)
 		r.Get("/kelola/setoran", h.KelolaSetoran)
 		r.Get("/kelola/mutasi", h.MutasiPage)
+		r.Get("/kelola/rukem", h.RukemPage)
+		r.Get("/kelola/sinkron", h.SinkronPage)
+		r.Get("/kelola/sinkron/{table}.csv", h.SinkronCSV)
 	})
 	// tulis keuangan (bendahara/ketua/wakil)
 	r.Group(func(r chi.Router) {

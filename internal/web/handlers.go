@@ -460,9 +460,11 @@ func (h *Handlers) kartuKelola(ctx context.Context) []pages.ActionCard {
 	// baca (transparansi) — semua pengurus bisa lihat
 	if h.auth.PunyaPeran(ctx, "ketua", "wakil", "sekretaris", "bendahara", "koordinator", "pembantu_koordinator") {
 		tambah("Lihat kas RT (grafik & rangkuman)", "/kas")
-		tambah("Laporan & ekspor", "/kelola/laporan")
 		tambah("Mutasi kas", "/kelola/mutasi")
 		tambah("Setoran", "/kelola/setoran")
+		tambah("Rukun kematian", "/kelola/rukem")
+		tambah("Sinkron data (spreadsheet)", "/kelola/sinkron")
+		tambah("Laporan & ekspor", "/kelola/laporan")
 	}
 	// tulis — sesuai peran
 	for _, p := range list {
@@ -665,6 +667,57 @@ func nullableStr(s string) sql.NullString {
 		return sql.NullString{}
 	}
 	return sql.NullString{String: s, Valid: true}
+}
+
+func (h *Handlers) SinkronPage(w http.ResponseWriter, r *http.Request) {
+	pages.Sinkron(h.nav(r), "sinkron").Render(r.Context(), w)
+}
+
+func (h *Handlers) SinkronCSV(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	table := chi.URLParam(r, "table")
+	var header []string
+	var rows [][]string
+
+	switch table {
+	case "pengurus":
+		daftar, _ := h.konten.Q.ListPengurus(ctx)
+		header = []string{"Nama", "Jabatan", "Alamat", "WhatsApp"}
+		for _, p := range daftar {
+			rows = append(rows, []string{p.Nama, pages.PeranLabel(p.Peran, int(p.Gang)), p.Alamat.String, p.NoWa})
+		}
+	case "mutasi":
+		data, _ := h.laporan.Data(ctx)
+		header = []string{"Tanggal", "Pos", "Kategori", "Keterangan", "Masuk", "Keluar"}
+		for _, b := range data {
+			rows = append(rows, []string{b.Tanggal, b.Pos, b.Kategori, b.Keterangan, strconv.FormatInt(b.Masuk, 10), strconv.FormatInt(b.Keluar, 10)})
+		}
+	case "setoran":
+		s, _ := h.konten.Q.ListSetoranSemua(ctx)
+		header = []string{"Gang", "Periode", "Total", "Status", "Dibuat", "Koordinator"}
+		for _, x := range s {
+			rows = append(rows, []string{strconv.FormatInt(x.Gang, 10), x.Periode, strconv.FormatInt(x.Total, 10), x.Status, x.DibuatAt, x.Koordinator})
+		}
+	case "rumah":
+		rm, _ := h.konten.Q.ListRumah(ctx)
+		header = []string{"Alamat", "Blok", "Nomor", "Gang", "Status", "Nama KK", "Anggota", "Bebas iuran", "Catatan"}
+		for _, x := range rm {
+			rows = append(rows, []string{x.Alamat, x.Blok, x.Nomor, strconv.FormatInt(x.Gang, 10), x.Status, x.NamaKk, strconv.FormatInt(x.JumlahAnggota.Int64, 10), x.BebasIuranAlasan.String, x.CatatanValidasi.String})
+		}
+	default:
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", `attachment; filename="`+table+`.csv"`)
+	w.Write(format.CSV(header, rows))
+}
+
+func (h *Handlers) RukemPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	saldo, _ := h.kas.Q.SaldoPos(ctx, "rukem")
+	pages.Rukem(saldo, h.nav(r), "rukem").Render(ctx, w)
 }
 
 func periodeOrNow(r *http.Request) string {

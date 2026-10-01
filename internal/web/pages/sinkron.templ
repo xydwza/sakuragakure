@@ -1,0 +1,39 @@
+package pages
+
+import (
+	"sakuragakure/internal/web/components"
+)
+
+var sinkronTables = []struct{ Key, Label, Desc string }{
+	{"pengurus", "Struktur pengurus", "Nama, jabatan, alamat, WhatsApp."},
+	{"mutasi", "Buku kas / mutasi", "Semua pemasukan dan pengeluaran."},
+	{"setoran", "Riwayat setoran", "Setoran per gang per bulan."},
+	{"rumah", "Data rumah & penghuni", "Alamat, status, kepala keluarga."},
+}
+
+templ Sinkron(nav []components.NavItem, active string) {
+	@components.Layout("Sinkron data · Kelola", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Sinkron data</h1><p class="muted">Unduh CSV untuk dibuka langsung di Google Sheets atau Excel. Data selalu mengikuti kondisi terbaru.</p></div>
+			<div class="g2">
+				for _, t := range sinkronTables {
+					<a class="card" style="display:grid;gap:5px" href={ templ.URL("/kelola/sinkron/" + t.Key + ".csv") }>
+						<h3>{ t.Label }</h3>
+						<p class="sm muted">{ t.Desc }</p>
+						<span class="pill ok">Unduh CSV</span>
+					</a>
+				}
+				<a class="card" style="display:grid;gap:5px" href="/kelola/laporan/kas.xlsx">
+					<h3>Laporan kas (Excel)</h3>
+					<p class="sm muted">Dengan formula SUM dan saldo berjalan.</p>
+					<span class="pill ok">Unduh XLSX</span>
+				</a>
+				<a class="card" style="display:grid;gap:5px" href="/kelola/laporan/kas.pdf">
+					<h3>Laporan kas (PDF)</h3>
+					<p class="sm muted">Siap cetak / dibagikan.</p>
+					<span class="pill ok">Unduh PDF</span>
+				</a>
+			</div>
+		</div>
+	}
+}
