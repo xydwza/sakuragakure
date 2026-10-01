@@ -41,3 +41,25 @@ File:
 Aturan konversi (SPEC §13): tahun_lahir = 2026 - umur (perkiraan=1); umur kosong → NULL (perkiraan=0); gender kosong → NULL; tetap→pemilik, kontrak→kontrak; kosong tanpa penghuni; nama kosong → "Penghuni <alamat>"; mulai = 2026-04-01.
 
 Kriteria selesai: `import --dry-run` mencetak ringkasan per gang/status, baris catatan validasi, duplikasi KK; `import` menulis 120 rumah + penghuni; `make test` hijau.
+
+Selesai.
+
+## Fase 1d — auth OTP + kode cadangan + sesi + middleware peran + createadmin
+
+Tujuan: login tanpa password (OTP WA 6 digit + kode cadangan), sesi 180 hari, CSRF, dan middleware 10 peran.
+
+File:
+- `internal/auth/otp.go` — generate (6 digit, hash SHA-256), verify (expiry 5 mnt, maks 5 percobaan), throttle per nomor 3/15 mnt
+- `internal/auth/kode.go` — kode cadangan sekali pakai (24 jam), hash + verify
+- `internal/auth/session.go` — scs + store SQLite custom (modernc, tanpa CGO; store bawaan scs pakai mattn/CGO)
+- `internal/auth/middleware.go` — `RequireLogin`, `RequirePeran` (10 peran)
+- `internal/auth/handlers.go` — POST /masuk/wa, POST /masuk/kode, GET /keluar
+- `internal/notif/notif.go` — `Enqueue` ke `notif_outbox` (template otp); log kode bila WA gateway kosong (dev)
+- `cmd/sakuragakure/main.go` — subcommand `createadmin`; `serve` pasang sesi + CSRF + route auth
+- test: `otp_test.go`, `kode_test.go`, `middleware_test.go`
+
+Dependensi baru: `github.com/alexedwards/scs/v2`, `github.com/justinas/nosurf` (keduanya pure Go).
+
+Kriteria selesai: OTP & kode cadangan terverifikasi (benar/salah/kedaluwarsa/percobaan habis); middleware tamu→redirect /masuk, peran salah→403; `createadmin` membuat user admin; `make test` hijau.
+
+Catatan: antrian `notif_outbox` sudah ditulis di fase ini, worker pengirim WA-nya di fase 1j (gateway mati → kode tetap dibuat, login pakai kode cadangan).

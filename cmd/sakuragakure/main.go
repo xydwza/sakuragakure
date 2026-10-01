@@ -6,9 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/justinas/nosurf"
 
+	"sakuragakure/internal/auth"
 	"sakuragakure/internal/db"
 	"sakuragakure/internal/rumah"
 )
@@ -25,6 +28,8 @@ func main() {
 		migrate(os.Args[2:])
 	case "import":
 		impor(os.Args[2:])
+	case "createadmin":
+		createadmin(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "perintah tidak dikenal: %s\n", os.Args[1])
 		usage()
@@ -39,18 +44,70 @@ func usage() {
 func serve(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", envOr("ADDR", ":8080"), "alamat listen, contoh :8080")
+	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
 	fs.Parse(args)
 
+	if dir := filepath.Dir(*dbPath); dir != "." {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			log.Fatalf("gagal buat direktori data: %v", err)
+		}
+	}
+	conn, err := db.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("gagal buka database: %v", err)
+	}
+	defer conn.Close()
+	if err := db.Migrate(conn); err != nil {
+		log.Fatalf("migrasi gagal: %v", err)
+	}
+
+	a := auth.New(conn, auth.SessionKey())
+
 	r := chi.NewRouter()
+	r.Use(a.Sessions.LoadAndSave)
 	r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
+	r.Get("/masuk", a.LoginPage)
+	r.Post("/masuk/wa", a.MintaOTP)
+	r.Post("/masuk/kode", a.VerifikasiOTP)
+	r.Post("/masuk/kode-cadangan", a.KodeCadangan)
+	r.Post("/keluar", a.Keluar)
 
 	log.Printf("sakuragakure listen di %s", *addr)
-	if err := http.ListenAndServe(*addr, r); err != nil {
+	if err := http.ListenAndServe(*addr, nosurf.New(r)); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func createadmin(args []string) {
+	fs := flag.NewFlagSet("createadmin", flag.ExitOnError)
+	nama := fs.String("nama", "", "nama admin")
+	wa := fs.String("wa", "", "nomor WhatsApp E.164 (+62...)")
+	peran := fs.String("peran", "admin", "peran awal")
+	gang := fs.Int("gang", 0, "gang (untuk peran koordinator/pembantu)")
+	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
+	fs.Parse(args)
+
+	if *nama == "" || *wa == "" {
+		log.Fatal("--nama dan --wa wajib diisi")
+	}
+
+	conn, err := db.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("gagal buka database: %v", err)
+	}
+	defer conn.Close()
+	if err := db.Migrate(conn); err != nil {
+		log.Fatalf("migrasi gagal: %v", err)
+	}
+
+	id, err := auth.BuatUser(conn, *nama, *wa, *peran, *gang)
+	if err != nil {
+		log.Fatalf("gagal buat user: %v", err)
+	}
+	log.Printf("user %s dibuat (id %d, peran %s)", *nama, id, *peran)
 }
 
 func migrate(args []string) {
