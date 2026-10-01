@@ -26,3 +26,5 @@ Kriteria selesai: `sakuragakure migrate` membuat DB lengkap; test trigger lolos;
 Keputusan yang dicatat di DECISIONS.md:
 - `pos_dana.kas_gang_1..3` diberi `publik=0` (tidak tampil di kas publik, sesuai mockup yang hanya menampilkan kas RT, dana sosial, rukem).
 - Setting tambahan dari §2.1 & §3.1: `nama_rt`, `rukem_mode`, `dansos_per`.
+
+Selesai. Catatan: go mod di-pin ke goose v3.24.0 + modernc.org/sqlite v1.39.0 agar tetap kompatibel Go 1.23 (Containerfile pakai golang:1.23-alpine); versi terbaru menuntut Go 1.26.
