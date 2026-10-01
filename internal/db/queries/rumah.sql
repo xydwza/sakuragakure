@@ -10,3 +10,16 @@ SELECT s.gang, s.periode, s.total, s.status, s.dibuat_at, COALESCE(u.nama, '') A
 FROM setoran s
 LEFT JOIN user u ON u.id = s.koordinator_id
 ORDER BY s.dibuat_at DESC;
+
+-- name: RekapKependudukan :many
+SELECT r.gang,
+       COUNT(*) AS total_rumah,
+       CAST(SUM(CASE WHEN r.status = 'tetap' THEN 1 ELSE 0 END) AS INTEGER) AS tetap,
+       CAST(SUM(CASE WHEN r.status = 'kontrak' THEN 1 ELSE 0 END) AS INTEGER) AS kontrak,
+       CAST(SUM(CASE WHEN r.status = 'kosong' THEN 1 ELSE 0 END) AS INTEGER) AS kosong,
+       COUNT(ph.id) AS jumlah_kk,
+       CAST(COALESCE(SUM(ph.jumlah_anggota), 0) AS INTEGER) AS jumlah_jiwa
+FROM rumah r
+LEFT JOIN penghuni ph ON ph.rumah_id = r.id AND ph.selesai IS NULL
+GROUP BY r.gang
+ORDER BY r.gang;

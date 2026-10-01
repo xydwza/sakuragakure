@@ -201,6 +201,13 @@ type PosDana struct {
 	Publik int64
 }
 
+type Rsvp struct {
+	UndanganID int64
+	RumahID    int64
+	Jawaban    string
+	DijawabAt  string
+}
+
 type Rumah struct {
 	ID               int64
 	Alamat           string
@@ -247,6 +254,14 @@ type Tagihan struct {
 	Jenis      string
 	Periode    string
 	Nominal    int64
+}
+
+type Undangan struct {
+	ID         int64
+	Judul      string
+	Isi        string
+	TerbitAt   string
+	DibuatOleh int64
 }
 
 type User struct {

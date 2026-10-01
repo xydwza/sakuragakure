@@ -108,3 +108,58 @@ func (q *Queries) ListSetoranSemua(ctx context.Context) ([]ListSetoranSemuaRow, 
 	}
 	return items, nil
 }
+
+const rekapKependudukan = `-- name: RekapKependudukan :many
+SELECT r.gang,
+       COUNT(*) AS total_rumah,
+       CAST(SUM(CASE WHEN r.status = 'tetap' THEN 1 ELSE 0 END) AS INTEGER) AS tetap,
+       CAST(SUM(CASE WHEN r.status = 'kontrak' THEN 1 ELSE 0 END) AS INTEGER) AS kontrak,
+       CAST(SUM(CASE WHEN r.status = 'kosong' THEN 1 ELSE 0 END) AS INTEGER) AS kosong,
+       COUNT(ph.id) AS jumlah_kk,
+       CAST(COALESCE(SUM(ph.jumlah_anggota), 0) AS INTEGER) AS jumlah_jiwa
+FROM rumah r
+LEFT JOIN penghuni ph ON ph.rumah_id = r.id AND ph.selesai IS NULL
+GROUP BY r.gang
+ORDER BY r.gang
+`
+
+type RekapKependudukanRow struct {
+	Gang       int64
+	TotalRumah int64
+	Tetap      int64
+	Kontrak    int64
+	Kosong     int64
+	JumlahKk   int64
+	JumlahJiwa int64
+}
+
+func (q *Queries) RekapKependudukan(ctx context.Context) ([]RekapKependudukanRow, error) {
+	rows, err := q.db.QueryContext(ctx, rekapKependudukan)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []RekapKependudukanRow
+	for rows.Next() {
+		var i RekapKependudukanRow
+		if err := rows.Scan(
+			&i.Gang,
+			&i.TotalRumah,
+			&i.Tetap,
+			&i.Kontrak,
+			&i.Kosong,
+			&i.JumlahKk,
+			&i.JumlahJiwa,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

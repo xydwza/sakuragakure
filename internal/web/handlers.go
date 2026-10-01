@@ -61,6 +61,11 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 	list, _ := h.auth.PeranList(r.Context())
 	for _, p := range list {
 		switch p.Peran {
+		case "rw", "perangkat_desa":
+			return []components.NavItem{
+				{Key: "laporan", Label: "Laporan", Href: "/laporan"},
+				{Key: "kas", Label: "Kas RT", Href: "/kas"},
+			}
 		case "admin":
 			return []components.NavItem{
 				{Key: "beranda", Label: "Beranda", Href: "/"},
@@ -93,6 +98,7 @@ func (h *Handlers) nav(r *http.Request) []components.NavItem {
 	}
 	return []components.NavItem{
 		{Key: "rumahku", Label: "Rumahku", Href: "/rumahku"},
+		{Key: "undangan", Label: "Undangan", Href: "/undangan"},
 		{Key: "kas", Label: "Kas RT", Href: "/kas"},
 		{Key: "kegiatan", Label: "Kegiatan", Href: "/kegiatan"},
 		{Key: "aturan", Label: "Aturan", Href: "/aturan"},
@@ -474,8 +480,10 @@ func (h *Handlers) kartuKelola(ctx context.Context) []pages.ActionCard {
 		case "ketua":
 			tambah("Catat pengeluaran", "/kelola/mutasi/baru")
 			tambah("Posting kegiatan", "/kelola/konten/posting")
+			tambah("Kelola undangan", "/kelola/undangan")
 		case "sekretaris":
 			tambah("Posting kegiatan", "/kelola/konten/posting")
+			tambah("Kelola undangan", "/kelola/undangan")
 		case "koordinator", "pembantu_koordinator":
 			tambah("Tarik iuran", "/gang/"+strconv.Itoa(p.Gang)+"/tarik")
 			tambah("Setoran gang", "/gang/"+strconv.Itoa(p.Gang)+"/setor")
@@ -718,6 +726,76 @@ func (h *Handlers) RukemPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	saldo, _ := h.kas.Q.SaldoPos(ctx, "rukem")
 	pages.Rukem(saldo, h.nav(r), "rukem").Render(ctx, w)
+}
+
+func (h *Handlers) undanganItems(ctx context.Context, rumahID int64) []pages.UndanganItem {
+	list, _ := h.konten.Q.ListUndangan(ctx)
+	total, _ := h.konten.Q.WajibIuranRumahCount(ctx)
+	items := make([]pages.UndanganItem, 0, len(list))
+	for _, u := range list {
+		jawaban := ""
+		if rumahID != 0 {
+			if j, err := h.konten.Q.RsvpJawaban(ctx, db.RsvpJawabanParams{UndanganID: u.ID, RumahID: rumahID}); err == nil {
+				jawaban = j
+			}
+		}
+		c, _ := h.konten.Q.RsvpCount(ctx, u.ID)
+		items = append(items, pages.UndanganItem{ID: u.ID, Judul: u.Judul, Isi: u.Isi, Terbit: u.TerbitAt, Jawaban: jawaban, Hadir: c.Hadir, Tidak: c.Tidak, Total: total})
+	}
+	return items
+}
+
+func (h *Handlers) Undangan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var rumahID int64
+	if rumah, err := h.konten.Q.RumahUser(ctx, h.auth.UserID(ctx)); err == nil {
+		rumahID = rumah.ID
+	}
+	pages.UndanganWarga(h.undanganItems(ctx, rumahID), rumahID != 0, h.nav(r), "undangan").Render(ctx, w)
+}
+
+func (h *Handlers) Rsvp(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	undanganID, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	jawaban := r.FormValue("jawaban")
+	if jawaban != "hadir" && jawaban != "tidak" {
+		http.Error(w, "jawaban tidak valid", http.StatusBadRequest)
+		return
+	}
+	rumah, err := h.konten.Q.RumahUser(ctx, h.auth.UserID(ctx))
+	if err != nil {
+		http.Error(w, "akun belum terhubung ke rumah", http.StatusBadRequest)
+		return
+	}
+	_ = h.konten.Q.SetRsvp(ctx, db.SetRsvpParams{UndanganID: undanganID, RumahID: rumah.ID, Jawaban: jawaban, DijawabAt: time.Now().Format(time.RFC3339)})
+	http.Redirect(w, r, "/undangan", http.StatusSeeOther)
+}
+
+func (h *Handlers) KelolaUndangan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	pages.KelolaUndangan(h.undanganItems(ctx, 0), nosurf.Token(r), h.nav(r), "undangan").Render(ctx, w)
+}
+
+func (h *Handlers) BuatUndangan(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	judul := r.FormValue("judul")
+	isi := r.FormValue("isi")
+	if judul == "" || isi == "" {
+		http.Error(w, "judul dan isi wajib diisi", http.StatusBadRequest)
+		return
+	}
+	if _, err := h.konten.Q.BuatUndangan(ctx, db.BuatUndanganParams{Judul: judul, Isi: isi, TerbitAt: time.Now().Format(time.RFC3339), DibuatOleh: h.auth.UserID(ctx)}); err != nil {
+		http.Error(w, "gagal menerbitkan", http.StatusBadRequest)
+		return
+	}
+	audit.Tulis(h.auth.DB, h.auth.UserID(ctx), "terbit_undangan", "undangan", "", judul, ip(r))
+	http.Redirect(w, r, "/kelola/undangan", http.StatusSeeOther)
+}
+
+func (h *Handlers) LaporanDesa(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rekap, _ := h.konten.Q.RekapKependudukan(ctx)
+	pages.LaporanDesa(rekap, h.nav(r), "laporan").Render(ctx, w)
 }
 
 func periodeOrNow(r *http.Request) string {

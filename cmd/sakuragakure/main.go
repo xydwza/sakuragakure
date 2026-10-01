@@ -94,6 +94,8 @@ func serve(args []string) {
 	r.Group(func(r chi.Router) {
 		r.Use(a.RequireLogin)
 		r.Get("/rumahku", h.Rumahku)
+		r.Get("/undangan", h.Undangan)
+		r.Post("/undangan/{id}/rsvp", h.Rsvp)
 	})
 
 	// koordinator (tulis alur iuran)
@@ -131,6 +133,13 @@ func serve(args []string) {
 		r.Use(a.RequirePeran("sekretaris", "ketua"))
 		r.Get("/kelola/konten/posting", h.PostingPage)
 		r.Post("/kelola/konten/posting", h.PostingSubmit)
+		r.Get("/kelola/undangan", h.KelolaUndangan)
+		r.Post("/kelola/undangan/baru", h.BuatUndangan)
+	})
+	// rw + perangkat desa (baca agregat)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("rw", "perangkat_desa"))
+		r.Get("/laporan", h.LaporanDesa)
 	})
 	// admin (teknis)
 	r.Group(func(r chi.Router) {

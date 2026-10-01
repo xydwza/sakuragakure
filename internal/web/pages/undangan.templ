@@ -1,0 +1,101 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
+)
+
+// UndanganItem adalah satu undangan + status RSVP.
+type UndanganItem struct {
+	ID                 int64
+	Judul, Isi, Terbit string
+	Jawaban            string // hadir | tidak | "" (belum)
+	Hadir, Tidak, Total int64
+}
+
+templ UndanganWarga(items []UndanganItem, terhubung bool, nav []components.NavItem, active string) {
+	@components.Layout("Undangan · RT 06 / RW 28 Sakura", nav, active) {
+		<div class="stack">
+			<div><h1 style="font-size:28px">Undangan</h1><p class="muted">Konfirmasi kehadiran dihitung per rumah, satu suara satu KK.</p></div>
+			if !terhubung {
+				<div class="note warn">Akun ini belum terhubung ke rumah. Hubungi pengurus untuk menghubungkan.</div>
+			}
+			if len(items) == 0 {
+				<div class="empty">Belum ada undangan.</div>
+			}
+			for _, u := range items {
+				<div class="inv">
+					<div class="inv-h wood grain">
+						<h3>{ u.Judul }</h3>
+						<p class="sm">{ u.Isi }</p>
+					</div>
+					<div class="inv-b">
+						<div class="kv"><dt>Diterbitkan</dt><dd>{ format.TglID(u.Terbit[:10]) }</dd></div>
+						if terhubung {
+							<div class="rsvpbar">
+								if u.Jawaban == "hadir" {
+									<span class="pill ok">Anda: hadir</span>
+								} else if u.Jawaban == "tidak" {
+									<span class="pill bad">Anda: berhalangan</span>
+								} else {
+									<span class="pill warn">Belum menjawab</span>
+								}
+								<form method="post" action={ templ.URL("/undangan/" + strconv.FormatInt(u.ID, 10) + "/rsvp") }>
+									<input type="hidden" name="jawaban" value="hadir"/>
+									<button class="btn s leaf">Hadir</button>
+								</form>
+								<form method="post" action={ templ.URL("/undangan/" + strconv.FormatInt(u.ID, 10) + "/rsvp") }>
+									<input type="hidden" name="jawaban" value="tidak"/>
+									<button class="btn s ghost">Berhalangan</button>
+								</form>
+							</div>
+						}
+						@RsvpBar(u.Hadir, u.Tidak, u.Total)
+						<p class="xs faint" style="margin-top:6px">Pasal 3.2 ayat 5: yang berhalangan hadir dianggap menyetujui hasil rapat.</p>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ KelolaUndangan(items []UndanganItem, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Undangan · Kelola", nav, active) {
+		<div class="stack">
+			<div class="between"><div><h1 style="font-size:28px">Undangan</h1><p class="muted">Terbitkan undangan untuk semua rumah wajib iuran. Kehadiran dihitung per KK.</p></div><a class="btn ghost" href="/kelola">← Kelola</a></div>
+			<section class="card">
+				<h3>Terbitkan undangan baru</h3>
+				<form class="form" style="margin-top:10px" method="post" action="/kelola/undangan/baru">
+					<input type="hidden" name="csrf_token" value={ csrf }/>
+					<label class="field">Judul<input name="judul" placeholder="Contoh: Rapat rutin warga triwulan" required/></label>
+					<label class="field">Isi<textarea name="isi" placeholder="Agenda, waktu, tempat." required></textarea></label>
+					<div><button class="btn">Terbitkan undangan</button></div>
+				</form>
+			</section>
+			for _, u := range items {
+				<section class="card">
+					<div class="sec-h"><h2>{ u.Judul }</h2><span class="pill">{ format.TglID(u.Terbit[:10]) }</span></div>
+					@RsvpBar(u.Hadir, u.Tidak, u.Total)
+					<div class="row" style="margin-top:9px"><span class="sm muted">Hadir { strconv.FormatInt(u.Hadir, 10) } · Berhalangan { strconv.FormatInt(u.Tidak, 10) } · Belum { strconv.FormatInt(u.Total-u.Hadir-u.Tidak, 10) } dari { strconv.FormatInt(u.Total, 10) } rumah</span></div>
+				</section>
+			}
+		</div>
+	}
+}
+
+templ RsvpBar(hadir, tidak, total int64) {
+	<div class="rbar" style="margin-top:11px">
+		<i style="width:{ strconv.FormatInt(pct(hadir, total), 10) }%;background:var(--leaf)"></i>
+		<i style="width:{ strconv.FormatInt(pct(tidak, total), 10) }%;background:var(--berry)"></i>
+	</div>
+	<div class="legend" style="margin-top:7px"><span><i style="background:var(--leaf);border-color:var(--leaf)"></i>Hadir { strconv.FormatInt(hadir, 10) }</span><span><i style="background:var(--berry);border-color:var(--berry)"></i>Tidak { strconv.FormatInt(tidak, 10) }</span><span><i></i>Belum { strconv.FormatInt(total-hadir-tidak, 10) }</span></div>
+}
+
+func pct(n, total int64) int64 {
+	if total == 0 {
+		return 0
+	}
+	return n * 100 / total
+}
