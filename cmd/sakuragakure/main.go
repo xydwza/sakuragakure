@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -149,15 +150,20 @@ func serve(args []string) {
 func createadmin(args []string) {
 	fs := flag.NewFlagSet("createadmin", flag.ExitOnError)
 	nama := fs.String("nama", "", "nama admin")
+	username := fs.String("username", "", "username login (bila kosong = nama kecil)")
 	wa := fs.String("wa", "", "nomor WhatsApp E.164 (+62...)")
-	password := fs.String("password", "", "kata sandi")
+	password := fs.String("password", "", "kata sandi (bila kosong = username)")
 	peran := fs.String("peran", "admin", "peran awal")
 	gang := fs.Int("gang", 0, "gang (untuk peran koordinator/pembantu)")
 	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
 	fs.Parse(args)
 
-	if *nama == "" || *wa == "" || *password == "" {
-		log.Fatal("--nama, --wa, dan --password wajib diisi")
+	if *nama == "" || *wa == "" {
+		log.Fatal("--nama dan --wa wajib diisi")
+	}
+	user := *username
+	if user == "" {
+		user = strings.ToLower(strings.Fields(*nama)[0])
 	}
 
 	conn, err := db.Open(*dbPath)
@@ -169,11 +175,11 @@ func createadmin(args []string) {
 		log.Fatalf("migrasi gagal: %v", err)
 	}
 
-	id, err := auth.BuatUser(conn, *nama, *wa, *peran, *password, *gang)
+	id, err := auth.BuatUser(conn, *nama, user, *wa, *peran, *password, *gang)
 	if err != nil {
 		log.Fatalf("gagal buat user: %v", err)
 	}
-	log.Printf("user %s dibuat (id %d, peran %s)", *nama, id, *peran)
+	log.Printf("user %s dibuat (id %d, username %s, peran %s)", *nama, id, user, *peran)
 }
 
 func tagihan(args []string) {

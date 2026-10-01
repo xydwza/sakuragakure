@@ -9,15 +9,16 @@ import (
 
 // Login memverifikasi kata sandi dan menerbitkan token JWT.
 func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
-	noWA := NormalisasiWA(r.FormValue("no_wa"))
+	input := strings.TrimSpace(r.FormValue("user"))
 	pw := r.FormValue("password")
 
 	var id int64
 	var hash sql.NullString
-	err := a.DB.QueryRow(`SELECT id, password_hash FROM user WHERE no_wa = ? AND aktif = 1 AND (aktif_sampai IS NULL OR aktif_sampai > ?)`,
-		noWA, now().Format(time.RFC3339)).Scan(&id, &hash)
+	err := a.DB.QueryRow(`SELECT id, password_hash FROM user
+		WHERE (LOWER(username) = LOWER(?) OR no_wa = ?) AND aktif = 1 AND (aktif_sampai IS NULL OR aktif_sampai > ?)`,
+		input, NormalisasiWA(input), now().Format(time.RFC3339)).Scan(&id, &hash)
 	if err != nil || !hash.Valid || !cekPassword(hash.String, pw) {
-		http.Error(w, "nomor atau kata sandi salah", http.StatusUnauthorized)
+		http.Error(w, "nama pengguna atau kata sandi salah", http.StatusUnauthorized)
 		return
 	}
 

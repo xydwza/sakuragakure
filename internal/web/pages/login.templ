@@ -37,8 +37,8 @@ templ Login(csrf string) {
 					</div>
 					<form class="form" method="post" action="/masuk">
 						<input type="hidden" name="csrf_token" value={ csrf }/>
-						<label class="field">Nomor WhatsApp
-							<input name="no_wa" inputmode="tel" placeholder="0812xxxxxxx" autocomplete="username" required/>
+						<label class="field">Nama pengguna / WhatsApp
+							<input name="user" inputmode="text" placeholder="ferry" autocomplete="username" required/>
 						</label>
 						<label class="field">Kata sandi
 							<input name="password" type="password" autocomplete="current-password" required/>

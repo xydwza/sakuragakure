@@ -40,16 +40,20 @@ func seedUser(t *testing.T, conn *sql.DB, nama, noWA, peran string) int64 {
 
 func TestBuatUserPassword(t *testing.T) {
 	conn := newTestDB(t)
-	id, err := BuatUser(conn, "Bendahara", "+628123", "bendahara", "rahasia123", 0)
+	id, err := BuatUser(conn, "Bendahara", "bendahara", "+628123", "bendahara", "", 0)
 	if err != nil {
 		t.Fatalf("buat user: %v", err)
 	}
-	var hash string
-	if err := conn.QueryRow(`SELECT password_hash FROM user WHERE id = ?`, id).Scan(&hash); err != nil {
+	var hash, username string
+	if err := conn.QueryRow(`SELECT password_hash, username FROM user WHERE id = ?`, id).Scan(&hash, &username); err != nil {
 		t.Fatal(err)
 	}
-	if !cekPassword(hash, "rahasia123") {
-		t.Fatalf("kata sandi benar harusnya cocok")
+	if username != "bendahara" {
+		t.Fatalf("username ingin bendahara, dapat %q", username)
+	}
+	// password default = username
+	if !cekPassword(hash, "bendahara") {
+		t.Fatalf("kata sandi default harusnya = username")
 	}
 	if cekPassword(hash, "salah") {
 		t.Fatalf("kata sandi salah harusnya gagal")
@@ -65,12 +69,12 @@ func TestBuatUserPassword(t *testing.T) {
 func TestLogin(t *testing.T) {
 	conn := newTestDB(t)
 	a := New(conn, []byte("test-key-123456789012345678901234567890"))
-	if _, err := BuatUser(conn, "Admin", "+628123", "admin", "pass123", 0); err != nil {
+	if _, err := BuatUser(conn, "Admin", "admin", "+628123", "admin", "", 0); err != nil {
 		t.Fatal(err)
 	}
 
-	post := func(noWA, pw string) *httptest.ResponseRecorder {
-		form := url.Values{"no_wa": {noWA}, "password": {pw}}
+	post := func(user, pw string) *httptest.ResponseRecorder {
+		form := url.Values{"user": {user}, "password": {pw}}
 		req := httptest.NewRequest(http.MethodPost, "/masuk", strings.NewReader(form.Encode()))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rr := httptest.NewRecorder()
@@ -78,10 +82,10 @@ func TestLogin(t *testing.T) {
 		return rr
 	}
 
-	// login benar -> 303 + cookie token
-	rr := post("+628123", "pass123")
+	// login via username -> 303 + cookie token
+	rr := post("admin", "admin")
 	if rr.Code != http.StatusSeeOther {
-		t.Fatalf("login benar ingin 303, dapat %d", rr.Code)
+		t.Fatalf("login username ingin 303, dapat %d", rr.Code)
 	}
 	found := false
 	for _, c := range rr.Result().Cookies() {
@@ -93,8 +97,13 @@ func TestLogin(t *testing.T) {
 		t.Fatalf("login benar harusnya menerbitkan cookie token")
 	}
 
+	// login via nomor WA juga bisa
+	if rr := post("+628123", "admin"); rr.Code != http.StatusSeeOther {
+		t.Fatalf("login via WA ingin 303, dapat %d", rr.Code)
+	}
+
 	// login salah -> 401
-	if rr := post("+628123", "salah"); rr.Code != http.StatusUnauthorized {
+	if rr := post("admin", "salah"); rr.Code != http.StatusUnauthorized {
 		t.Fatalf("login salah ingin 401, dapat %d", rr.Code)
 	}
 }

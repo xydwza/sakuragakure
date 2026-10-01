@@ -42,7 +42,7 @@ func Login(csrf string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <label class=\"field\">Nomor WhatsApp <input name=\"no_wa\" inputmode=\"tel\" placeholder=\"0812xxxxxxx\" autocomplete=\"username\" required></label> <label class=\"field\">Kata sandi <input name=\"password\" type=\"password\" autocomplete=\"current-password\" required></label> <button class=\"btn\">Masuk</button></form><a class=\"small muted\" href=\"/\">← Kembali ke beranda</a></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <label class=\"field\">Nama pengguna / WhatsApp <input name=\"user\" inputmode=\"text\" placeholder=\"ferry\" autocomplete=\"username\" required></label> <label class=\"field\">Kata sandi <input name=\"password\" type=\"password\" autocomplete=\"current-password\" required></label> <button class=\"btn\">Masuk</button></form><a class=\"small muted\" href=\"/\">← Kembali ke beranda</a></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
