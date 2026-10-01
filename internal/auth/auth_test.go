@@ -2,7 +2,11 @@ package auth
 
 import (
 	"database/sql"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"sakuragakure/internal/db"
@@ -55,5 +59,42 @@ func TestBuatUserPassword(t *testing.T) {
 	conn.QueryRow(`SELECT no_wa FROM user WHERE id = ?`, id).Scan(&noWA)
 	if noWA != "+628123" {
 		t.Fatalf("no_wa ingin +628123, dapat %q", noWA)
+	}
+}
+
+func TestLogin(t *testing.T) {
+	conn := newTestDB(t)
+	a := New(conn, []byte("test-key-123456789012345678901234567890"))
+	if _, err := BuatUser(conn, "Admin", "+628123", "admin", "pass123", 0); err != nil {
+		t.Fatal(err)
+	}
+
+	post := func(noWA, pw string) *httptest.ResponseRecorder {
+		form := url.Values{"no_wa": {noWA}, "password": {pw}}
+		req := httptest.NewRequest(http.MethodPost, "/masuk", strings.NewReader(form.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rr := httptest.NewRecorder()
+		a.Login(rr, req)
+		return rr
+	}
+
+	// login benar -> 303 + cookie token
+	rr := post("+628123", "pass123")
+	if rr.Code != http.StatusSeeOther {
+		t.Fatalf("login benar ingin 303, dapat %d", rr.Code)
+	}
+	found := false
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == tokenCookie && c.Value != "" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("login benar harusnya menerbitkan cookie token")
+	}
+
+	// login salah -> 401
+	if rr := post("+628123", "salah"); rr.Code != http.StatusUnauthorized {
+		t.Fatalf("login salah ingin 401, dapat %d", rr.Code)
 	}
 }
