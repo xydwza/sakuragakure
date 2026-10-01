@@ -84,3 +84,25 @@ Dependensi/tool baru: `github.com/a-h/templ` (tool generate, di-pin di Container
 Kriteria selesai: `make generate` + `make build` jalan; `/` merender shell dengan token sakura; font & htmx dilayani lokal tanpa CDN; `make test` hijau.
 
 Catatan: navigasi per peran + pengalih peran diisi fase 1f (butuh halaman beranda/kas).
+
+Selesai.
+
+## Fase 1f — beranda dan kas publik (kelopak per gang + grafik SVG)
+
+Selesai.
+
+## Fase 1g — tarik iuran + setoran + konfirmasi bendahara
+
+Tujuan: alur keuangan utama (SPEC §7 alur A) — koordinator menandai rumah, menyetor, bendahara menerima.
+
+File:
+- `internal/db/queries/iuran.sql` — grid gang, setoran menunggu, dll (sqlc)
+- `internal/iuran/iuran.go` — `GenerateTagihan`, `TogglePembayaran`, `Setor`, `TerimaSetoran`, `TolakSetoran` (transaksi DB untuk operasi multi-tabel)
+- `internal/iuran/iuran_test.go` — state machine pembayaran + transaksi + saldo
+- `internal/web/pages/tarik.templ`, `setor.templ`, `kelola_setoran.templ`
+- `internal/web/handlers.go` — route koordinator/bendahara + middleware peran + nav
+- `cmd/sakuragakure/main.go` — subcommand `tagihan --periode`
+
+State machine: `dipegang -> disetor -> diterima`; `disetor -> dipegang` hanya lewat tolak; tap membatalkan hanya saat `dipegang`.
+
+Kriteria selesai: koordinator bisa menandai 40 rumah + setor; bendahara terima → saldo + kelopak berubah; state machine diuji; `make test` hijau.

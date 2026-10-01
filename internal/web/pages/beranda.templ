@@ -6,8 +6,8 @@ import (
 	"sakuragakure/internal/web/format"
 )
 
-templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string) {
-	@components.Layout("Beranda · RT 06 / RW 28 Sakura") {
+templ Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string, nav []components.NavItem, active string) {
+	@components.Layout("Beranda · RT 06 / RW 28 Sakura", nav, active) {
 		<div class="stack">
 			<div class="hero">
 				<div class="hero-text">

@@ -70,3 +70,25 @@ func TestRequireLogin(t *testing.T) {
 		t.Fatalf("masuk: ingin 200, dapat %d", rr.Code)
 	}
 }
+
+func TestPunyaGang(t *testing.T) {
+	conn := newTestDB(t)
+	a := New(conn, []byte("test-key-123456789012345678901234567890"))
+
+	// koordinator gang 1
+	res, _ := conn.Exec(`INSERT INTO user (nama, no_wa, created_at) VALUES ('K1','+628100','2026-10-01T00:00:00+07:00')`)
+	uid, _ := res.LastInsertId()
+	if _, err := conn.Exec(`INSERT INTO user_peran (user_id, peran, gang) VALUES (?, 'koordinator', 1)`, uid); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, _ := a.Sessions.Load(context.Background(), "")
+	a.Sessions.Put(ctx, "userID", uid)
+
+	if !a.PunyaGang(ctx, 1, "koordinator", "pembantu_koordinator") {
+		t.Fatalf("koordinator gang 1 harus punya akses gang 1")
+	}
+	if a.PunyaGang(ctx, 2, "koordinator", "pembantu_koordinator") {
+		t.Fatalf("koordinator gang 1 tidak boleh punya akses gang 2")
+	}
+}

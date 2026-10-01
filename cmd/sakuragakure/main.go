@@ -1,18 +1,21 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/nosurf"
 
 	"sakuragakure/internal/auth"
 	"sakuragakure/internal/db"
+	"sakuragakure/internal/iuran"
 	"sakuragakure/internal/rumah"
 	"sakuragakure/internal/web"
 )
@@ -31,6 +34,8 @@ func main() {
 		impor(os.Args[2:])
 	case "createadmin":
 		createadmin(os.Args[2:])
+	case "tagihan":
+		tagihan(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "perintah tidak dikenal: %s\n", os.Args[1])
 		usage()
@@ -39,7 +44,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "pemakaian: sakuragakure <serve|migrate|import|backup|createadmin>")
+	fmt.Fprintln(os.Stderr, "pemakaian: sakuragakure <serve|migrate|import|tagihan|backup|createadmin>")
 }
 
 func serve(args []string) {
@@ -71,9 +76,26 @@ func serve(args []string) {
 		w.Write([]byte("ok"))
 	})
 	r.Handle("/static/*", web.StaticHandler())
-	h := web.NewHandlers(conn)
+	h := web.NewHandlers(conn, a)
 	r.Get("/", h.Beranda)
 	r.Get("/kas", h.Kas)
+
+	// koordinator
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("koordinator", "pembantu_koordinator"))
+		r.Get("/gang/{gang}/tarik", h.Tarik)
+		r.Post("/gang/{gang}/tarik", h.TarikToggle)
+		r.Get("/gang/{gang}/setor", h.SetorPage)
+		r.Post("/gang/{gang}/setor", h.SetorSubmit)
+	})
+	// bendahara + pengurus
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequirePeran("bendahara", "ketua", "wakil"))
+		r.Get("/kelola/setoran", h.KelolaSetoran)
+		r.Post("/kelola/setoran/terima", h.TerimaSetoran)
+		r.Post("/kelola/setoran/tolak", h.TolakSetoran)
+	})
+
 	r.Get("/masuk", a.LoginPage)
 	r.Post("/masuk/wa", a.MintaOTP)
 	r.Post("/masuk/kode", a.VerifikasiOTP)
@@ -113,6 +135,27 @@ func createadmin(args []string) {
 		log.Fatalf("gagal buat user: %v", err)
 	}
 	log.Printf("user %s dibuat (id %d, peran %s)", *nama, id, *peran)
+}
+
+func tagihan(args []string) {
+	fs := flag.NewFlagSet("tagihan", flag.ExitOnError)
+	periode := fs.String("periode", time.Now().Format("2006-01"), "periode YYYY-MM")
+	dbPath := fs.String("db", envOr("DB_PATH", "data/sakuragakure.db"), "path file SQLite")
+	fs.Parse(args)
+
+	conn, err := db.Open(*dbPath)
+	if err != nil {
+		log.Fatalf("gagal buka database: %v", err)
+	}
+	defer conn.Close()
+	if err := db.Migrate(conn); err != nil {
+		log.Fatalf("migrasi gagal: %v", err)
+	}
+	n, err := iuran.New(conn).GenerateTagihan(context.Background(), *periode)
+	if err != nil {
+		log.Fatalf("gagal buat tagihan: %v", err)
+	}
+	log.Printf("tagihan %s: %d dibuat", *periode, n)
 }
 
 func migrate(args []string) {

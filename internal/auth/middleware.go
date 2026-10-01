@@ -49,6 +49,24 @@ func (a *Auth) RequireLogin(next http.Handler) http.Handler {
 	})
 }
 
+// PunyaGang mengecek user punya salah satu peran yang terikat ke gang tertentu.
+func (a *Auth) PunyaGang(ctx context.Context, gang int, peran ...string) bool {
+	set := make(map[string]bool, len(peran))
+	for _, p := range peran {
+		set[p] = true
+	}
+	list, err := a.PeranList(ctx)
+	if err != nil {
+		return false
+	}
+	for _, p := range list {
+		if set[p.Peran] && p.Gang == gang {
+			return true
+		}
+	}
+	return false
+}
+
 // RequirePeran membolehkan hanya peran tertentu; tamu dialihkan, peran salah 403.
 func (a *Auth) RequirePeran(peran ...string) func(http.Handler) http.Handler {
 	set := make(map[string]bool, len(peran))

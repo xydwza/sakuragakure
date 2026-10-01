@@ -1,6 +1,6 @@
 package components
 
-templ Layout(title string) {
+templ Layout(title string, nav []NavItem, active string) {
 	<!doctype html>
 	<html lang="id">
 		<head>
@@ -34,12 +34,28 @@ templ Layout(title string) {
 				</div>
 			</header>
 			<div class="layout">
-				<nav class="rail" id="rail" aria-label="Menu"></nav>
+				<nav class="rail" aria-label="Menu">
+					for _, it := range nav {
+						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
+							@templ.Raw(Icon(it.Key))
+							<span>{ it.Label }</span>
+						</a>
+					}
+				</nav>
 				<main id="main" tabindex="-1">
 					{ children... }
 				</main>
 			</div>
-			<nav class="bottomnav" aria-label="Menu"><div class="bottomnav-in" id="bnav"></div></nav>
+			<nav class="bottomnav" aria-label="Menu">
+				<div class="bottomnav-in">
+					for _, it := range nav {
+						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
+							@templ.Raw(Icon(it.Key))
+							<span>{ it.Label }</span>
+						</a>
+					}
+				</div>
+			</nav>
 			<script src="/static/vendor/htmx.min.js" defer></script>
 		</body>
 	</html>

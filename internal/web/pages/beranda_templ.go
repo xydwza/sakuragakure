@@ -14,7 +14,7 @@ import (
 	"sakuragakure/internal/web/format"
 )
 
-func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string) templ.Component {
+func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, periode string, nav []components.NavItem, active string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -82,7 +82,7 @@ func Beranda(kasRT, dansos, rukem, diKoordinator int64, kelopak []kas.Kelopak, p
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = components.Layout("Beranda · RT 06 / RW 28 Sakura").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.Layout("Beranda · RT 06 / RW 28 Sakura", nav, active).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

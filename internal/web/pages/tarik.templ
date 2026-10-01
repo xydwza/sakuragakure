@@ -1,0 +1,51 @@
+package pages
+
+import (
+	"strconv"
+
+	"sakuragakure/internal/web/components"
+	"sakuragakure/internal/web/format"
+)
+
+templ Tarik(gang int, periode string, iuran int64, bloks []BlokRumah, heldCount, doneCount, disetorCount int, locked bool, csrf string, nav []components.NavItem, active string) {
+	@components.Layout("Tarik iuran · Gang "+strconv.Itoa(gang), nav, active) {
+		@TarikContent(gang, periode, iuran, bloks, heldCount, doneCount, disetorCount, locked, csrf)
+	}
+}
+
+templ TarikContent(gang int, periode string, iuran int64, bloks []BlokRumah, heldCount, doneCount, disetorCount int, locked bool, csrf string) {
+	<div class="stack" id="tarik-content">
+		<div class="between">
+			<div><p class="small faint">Koordinator gang { strconv.Itoa(gang) }</p><h1 style="font-size:28px">Tarik iuran { format.LabelBulan(periode) }</h1></div>
+			<span class="pill sak">{ format.LabelBulan(periode) }</span>
+		</div>
+		<p class="muted">Ketuk rumah yang sudah bayar. Ketuk lagi untuk membatalkan sebelum disetor.</p>
+		if locked {
+			<div class="note warn">Bulan ini sudah ditutup buku oleh bendahara. Hanya bisa dilihat.</div>
+		}
+		<div class="legend"><span><i style="background:var(--sakura-soft);border-color:var(--sakura)"></i>Sudah bayar, uang di saya</span><span><i style="background:var(--leaf-soft);border-color:var(--leaf)"></i>Sudah diterima bendahara</span><span><i style="border-style:dashed"></i>Bebas iuran</span><span><i style="background:repeating-linear-gradient(135deg,var(--sunk) 0 3px,transparent 3px 6px)"></i>Kosong</span></div>
+		for _, b := range bloks {
+			<div class="blok"><h3>Blok { b.Blok }</h3><div class="tiles">
+				for _, r := range b.Rumah {
+					<button class={ "tile " + TileClass(r, locked) } type="button"
+						hx-post={ "/gang/" + strconv.Itoa(gang) + "/tarik" }
+						hx-vals={ `{"csrf_token":"` + csrf + `","alamat":"` + r.Alamat + `","periode":"` + periode + `"}` }
+						hx-target="#tarik-content" hx-swap="outerHTML"
+						aria-label={ r.Alamat + " " + TileSub(r) }>
+						<span class="no">{ r.Nomor }</span>
+						<span class="nm">{ TileSub(r) }</span>
+						if TileMark(r) != "" {
+							<span class="st">{ TileMark(r) }</span>
+						}
+					</button>
+				}
+			</div></div>
+		}
+		<div class="sticky-bar">
+			<div><div style="font-weight:800" class="num">{ format.FormatRupiah(int64(heldCount) * iuran) }</div><div class="tiny" style="opacity:.75">{ strconv.Itoa(heldCount) } rumah di tangan, { strconv.Itoa(doneCount) } sudah diterima, { strconv.Itoa(disetorCount) } disetor</div></div>
+			if heldCount > 0 && !locked {
+				<a class="btn" href={ templ.URL("/gang/" + strconv.Itoa(gang) + "/setor?periode=" + periode) }>Setor</a>
+			}
+		</div>
+	</div>
+}
