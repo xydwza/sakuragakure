@@ -365,7 +365,7 @@ func (h *Handlers) Aturan(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) Pengurus(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	daftar, _ := h.konten.Q.ListPengurus(ctx)
-	pages.Pengurus(pages.BuildPohon(daftar), h.nav(r), "pengurus").Render(ctx, w)
+	pages.Pengurus(pages.BuildPohon(daftar), daftar, h.nav(r), "pengurus").Render(ctx, w)
 }
 
 func (h *Handlers) Rumahku(w http.ResponseWriter, r *http.Request) {

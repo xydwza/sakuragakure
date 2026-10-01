@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Mark menggambar logo bunga sakura (kelopak runcing, bukan bulat).
+// Mark menggambar logo RT (sakura di atas lingkaran gelap).
 func Mark() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -30,7 +30,7 @@ func Mark() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg class=\"mark\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><g transform=\"translate(20 20)\"><g fill=\"var(--sakura)\"><path d=\"M0 0 C -5.5 -4 -5 -9.5 0 -13 C 5 -9.5 5.5 -4 0 0 Z\"></path> <path d=\"M0 0 C -5.5 -4 -5 -9.5 0 -13 C 5 -9.5 5.5 -4 0 0 Z\" transform=\"rotate(72)\"></path> <path d=\"M0 0 C -5.5 -4 -5 -9.5 0 -13 C 5 -9.5 5.5 -4 0 0 Z\" transform=\"rotate(144)\"></path> <path d=\"M0 0 C -5.5 -4 -5 -9.5 0 -13 C 5 -9.5 5.5 -4 0 0 Z\" transform=\"rotate(216)\"></path> <path d=\"M0 0 C -5.5 -4 -5 -9.5 0 -13 C 5 -9.5 5.5 -4 0 0 Z\" transform=\"rotate(288)\"></path></g> <circle r=\"3.2\" fill=\"var(--ink)\"></circle></g></svg>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg class=\"mark\" viewBox=\"0 0 44 44\" aria-hidden=\"true\"><circle cx=\"22\" cy=\"22\" r=\"21\" fill=\"rgba(0,0,0,.22)\"></circle> <g transform=\"translate(22 22)\"><g fill=\"#F6C9D6\" stroke=\"#C98098\" stroke-width=\"1\"><ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"#C79A2E\"></circle></g></svg>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

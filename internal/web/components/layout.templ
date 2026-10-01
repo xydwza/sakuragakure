@@ -6,7 +6,7 @@ templ Layout(title string, nav []NavItem, active string) {
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-			<meta name="theme-color" content="#16302A"/>
+			<meta name="theme-color" content="#2C4A2A"/>
 			<title>{ title }</title>
 			<link rel="icon" type="image/svg+xml" href="/static/icons/sakura.svg"/>
 			<link rel="manifest" href="/static/manifest.webmanifest"/>
@@ -15,19 +15,19 @@ templ Layout(title string, nav []NavItem, active string) {
 			<script src="/static/app.js" defer></script>
 		</head>
 		<body>
-			<header class="top">
+			<header class="top wood grain">
 				<div class="top-in">
 					<div class="brand">
 						@Mark()
 						<div><b>RT 06 / RW 28 Sakura</b><span>Grand Cikarang City</span></div>
 					</div>
 					<button class="iconbtn" id="theme" aria-label="Ganti tema terang/gelap" type="button">
-						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+						<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
 					</button>
 				</div>
 			</header>
-			<div class="layout">
-				<nav class="rail" aria-label="Menu">
+			<div class="shell">
+				<nav class="rail wood grain" aria-label="Menu">
 					for _, it := range nav {
 						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
 							@templ.Raw(Icon(it.IconName()))
@@ -39,8 +39,8 @@ templ Layout(title string, nav []NavItem, active string) {
 					{ children... }
 				</main>
 			</div>
-			<nav class="bottomnav" aria-label="Menu">
-				<div class="bottomnav-in">
+			<nav class="bottomnav wood grain" aria-label="Menu">
+				<div class="bn-in">
 					for _, it := range nav {
 						<a class="navbtn" href={ templ.URL(it.Href) } if active == it.Key { aria-current="page" }>
 							@templ.Raw(Icon(it.IconName()))

@@ -1,56 +1,115 @@
 package pages
 
 import (
+	"database/sql"
 	"strconv"
 
+	"sakuragakure/internal/db"
 	"sakuragakure/internal/web/components"
 )
 
-templ Pengurus(pohon NodePengurus, nav []components.NavItem, active string) {
-	@components.Layout("Pengurus · RT 06 / RW 28 Sakura", nav, active) {
+templ Pengurus(ketua NodePengurus, daftar []db.ListPengurusRow, nav []components.NavItem, active string) {
+	@components.Layout("Struktur pengurus · RT 06 / RW 28 Sakura", nav, active) {
 		<div class="stack">
-			<div><h1 style="font-size:28px">Pengurus RT 06</h1><p class="muted">Struktur organisasi. Ketuk nama untuk detail dan chat WhatsApp.</p></div>
-			<div class="org-wrap">
-				<ul class="org">
-					@Cabang(pohon)
-				</ul>
-			</div>
+			<div><h1>Struktur pengurus RT 06</h1><p class="muted">Bagan dibuat otomatis dari peran akun. Ganti pengurus cukup ubah peran di menu admin, tidak perlu edit gambar.</p></div>
+			<section class="plaque wood lite grain">
+				<div class="plaque-in">
+					@Vine(true)
+					@Vine(false)
+					<div class="banner wood grain"><h2>JARINGAN PENGURUS RT 06 / RW 28</h2></div>
+					<div class="tree">
+						<div class="tier">@Node(ketua, "pod")</div>
+						<div class="stem"></div>
+						<div class="spread"><i style="left:12.5%"></i><i style="left:50%"></i><i style="left:87.5%"></i></div>
+						<div class="tier">
+							for _, n := range IntiPengurus(ketua) {
+								@Node(n, "leafshape")
+							}
+						</div>
+						<div class="stem"></div>
+						<div class="tier" style="align-items:stretch;gap:12px">
+							for _, k := range KoordinatorPengurus(ketua) {
+								@GangBox(k)
+							}
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="card">
+				<div class="sec-h"><h2>Daftar pengurus</h2></div>
+				<div class="people">
+					for _, p := range daftar {
+						<div class="person">
+							@Ava(p.Nama, p.FotoMediaID)
+							<div class="grow"><b>{ p.Nama }</b><div class="sm muted">{ PeranLabel(p.Peran, int(p.Gang)) }</div><div class="xs faint">{ p.Alamat.String }</div></div>
+						</div>
+					}
+				</div>
+				<p class="sm faint" style="margin-top:11px">Ditetapkan di Cikarang, 11 April 2026 (AD/ART halaman 7). Foto pengurus diunggah lewat menu admin.</p>
+			</section>
+			<section class="card">
+				<div class="sec-h"><h2>Tampilan ringkas (seperti di HP)</h2></div>
+				<div class="mtree">
+					<details open>
+						<summary>@Ava(ketua.Nama, ketua.FotoMediaID)<div><div class="xs faint">Ketua RT</div><b>{ ketua.Nama }</b></div><span class="chev">&#9662;</span></summary>
+						<div class="body">
+							for _, n := range IntiPengurus(ketua) {
+								<div class="mrow">@Ava(n.Nama, n.FotoMediaID)<div><div class="xs faint">{ n.Jabatan }</div><b class="sm">{ n.Nama }</b></div></div>
+							}
+						</div>
+					</details>
+					for _, k := range KoordinatorPengurus(ketua) {
+						<details>
+							<summary><b>Gang { strconv.Itoa(k.Gang) }</b><span class="chev">&#9662;</span></summary>
+							<div class="body">
+								<div class="mrow">@Ava(k.Nama, k.FotoMediaID)<div><div class="xs faint">Koordinator</div><b class="sm">{ k.Nama }</b></div></div>
+								for _, m := range k.Anak {
+									<div class="mrow">@Ava(m.Nama, m.FotoMediaID)<div><div class="xs faint">Pembantu koordinator</div><b class="sm">{ m.Nama }</b></div></div>
+								}
+							</div>
+						</details>
+					}
+				</div>
+			</section>
 		</div>
 	}
 }
 
-templ Cabang(n NodePengurus) {
-	<li>
-		<div class="pnode">
-			<details>
-				<summary>
-					if n.FotoMediaID.Valid {
-						<img class="pav" src={ "/m/" + strconv.FormatInt(n.FotoMediaID.Int64, 10) + "/thumb" } alt={ n.Nama }/>
-					} else {
-						<span class="pav dummy" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.1 0-8 1.9-8 5v2h16v-2c0-3.1-3.9-5-8-5z"/></svg>
-						</span>
-					}
-					<span class="pnama">{ n.Nama }</span>
-					<span class="pjab">{ n.Jabatan }</span>
-				</summary>
-				<div class="pdetail">
-					if n.Alamat != "" {
-						<div class="small muted">Alamat: { n.Alamat }</div>
-					}
-					if n.Detail != "" {
-						<p class="small muted">{ n.Detail }</p>
-					}
-					<a class="btn leaf sm" href={ templ.URL(WaChatLink(n.Wa, Sapaan(n.Peran, n.Gang))) } target="_blank" rel="noopener">Chat WhatsApp</a>
-				</div>
-			</details>
-		</div>
-		if len(n.Anak) > 0 {
-			<ul>
-				for _, a := range n.Anak {
-					@Cabang(a)
-				}
-			</ul>
+templ Node(n NodePengurus, cls string) {
+	<div class={ "node " + cls }>
+		@Ava(n.Nama, n.FotoMediaID)
+		<div class="role">{ n.Jabatan }</div>
+		<div class="nm">{ n.Nama }</div>
+		if n.Alamat != "" {
+			<div class="sub">{ n.Alamat }</div>
 		}
-	</li>
+	</div>
+}
+
+templ GangBox(k NodePengurus) {
+	<div class="gangbox">
+		<h4>Koordinator Gang { strconv.Itoa(k.Gang) }</h4>
+		<div class="gangmem">
+			<div class="mem">@Ava(k.Nama, k.FotoMediaID)<div class="nm">{ k.Nama }</div><div class="tag">Koordinator</div></div>
+			for _, m := range k.Anak {
+				<div class="mem">@Ava(m.Nama, m.FotoMediaID)<div class="nm">{ m.Nama }</div><div class="tag">Pembantu</div></div>
+			}
+		</div>
+	</div>
+}
+
+templ Ava(nama string, foto sql.NullInt64) {
+	if foto.Valid {
+		<img class="ava s" src={ "/m/" + strconv.FormatInt(foto.Int64, 10) + "/thumb" } alt={ nama }/>
+	} else {
+		<div class="ava s">{ AvatarInitials(nama) }</div>
+	}
+}
+
+templ Vine(top bool) {
+	if top {
+		<svg class="vine tl" viewBox="0 0 120 80" aria-hidden="true"><path d="M2 78C30 70 48 52 60 28" stroke="var(--leaf)" stroke-width="2.5" fill="none"/><ellipse cx="30" cy="58" rx="12" ry="7" fill="var(--leaf)" opacity=".45" transform="rotate(-30 30 58)"/><ellipse cx="50" cy="38" rx="11" ry="6.5" fill="var(--leaf)" opacity=".35" transform="rotate(-42 50 38)"/><ellipse cx="62" cy="18" rx="9" ry="5.5" fill="var(--leaf)" opacity=".5" transform="rotate(-55 62 18)"/></svg>
+	} else {
+		<svg class="vine br" viewBox="0 0 120 80" aria-hidden="true"><path d="M2 78C30 70 48 52 60 28" stroke="var(--leaf)" stroke-width="2.5" fill="none"/><ellipse cx="30" cy="58" rx="12" ry="7" fill="var(--leaf)" opacity=".45" transform="rotate(-30 30 58)"/><ellipse cx="50" cy="38" rx="11" ry="6.5" fill="var(--leaf)" opacity=".35" transform="rotate(-42 50 38)"/><ellipse cx="62" cy="18" rx="9" ry="5.5" fill="var(--leaf)" opacity=".5" transform="rotate(-55 62 18)"/></svg>
+	}
 }

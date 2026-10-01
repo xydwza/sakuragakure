@@ -36,6 +36,29 @@ func PeranNama(peran string) string {
 	return peran
 }
 
+// IntiPengurus mengembalikan wakil/sekretaris/bendahara dari pohon.
+func IntiPengurus(ketua NodePengurus) []NodePengurus {
+	var out []NodePengurus
+	for _, a := range ketua.Anak {
+		switch a.Peran {
+		case "wakil", "sekretaris", "bendahara":
+			out = append(out, a)
+		}
+	}
+	return out
+}
+
+// KoordinatorPengurus mengembalikan koordinator (dengan pembantu) dari pohon.
+func KoordinatorPengurus(ketua NodePengurus) []NodePengurus {
+	var out []NodePengurus
+	for _, a := range ketua.Anak {
+		if a.Peran == "koordinator" {
+			out = append(out, a)
+		}
+	}
+	return out
+}
+
 // PeranLabel menampilkan nama peran untuk struktur pengurus.
 func PeranLabel(peran string, gang int) string {
 	switch peran {
