@@ -30,7 +30,7 @@ func Mark() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg class=\"mark\" viewBox=\"0 0 44 44\" aria-hidden=\"true\"><circle cx=\"22\" cy=\"22\" r=\"21\" fill=\"rgba(0,0,0,.22)\"></circle> <g transform=\"translate(22 22)\"><g fill=\"#F6C9D6\" stroke=\"#C98098\" stroke-width=\"1\"><ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"#C79A2E\"></circle></g></svg>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<svg class=\"mark\" viewBox=\"0 0 44 44\" width=\"36\" height=\"36\" aria-hidden=\"true\"><circle cx=\"22\" cy=\"22\" r=\"21\" fill=\"rgba(0,0,0,.22)\"></circle> <g transform=\"translate(22 22)\"><g fill=\"#F6C9D6\" stroke=\"#C98098\" stroke-width=\"1\"><ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(72)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(144)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(216)\"></ellipse> <ellipse rx=\"6\" ry=\"10.5\" cy=\"-9.5\" transform=\"rotate(288)\"></ellipse></g> <circle r=\"4\" fill=\"#C79A2E\"></circle></g></svg>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
